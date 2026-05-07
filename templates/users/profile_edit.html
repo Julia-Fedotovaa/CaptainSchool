@@ -1,0 +1,207 @@
+{% extends "base_template.html" %}
+{% block title %}Редактирование профиля{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: #7748FF; }
+  .bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .bg-blob { position: absolute; background: #fff; border-radius: 50%; }
+  .bg-blob-1 { width: 450px; height: 450px; top: 25%; left: -150px; opacity: .13; }
+  .bg-blob-2 { width: 360px; height: 360px; top: 55%; right: -110px; opacity: .11; }
+
+  .site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
+  .pe-wrap { max-width: 620px; margin: 0 auto; padding: 0 2rem 5rem; position: relative; z-index: 1; }
+  .pe-back { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; display: inline-block; margin-bottom: 1.2rem; }
+  .pe-back:hover { color: #fff; }
+  .pe-card {
+    background: #fff; border-radius: 22px; padding: 2.5rem 2.5rem 2rem;
+    box-shadow: 0 8px 40px rgba(40,0,120,0.10);
+  }
+  .pe-title { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1.5rem; }
+  .pe-section { font-size: 0.85rem; color: #999; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 0.6rem; margin-top: 1.5rem; }
+  .pe-section:first-of-type { margin-top: 0; }
+  .pe-field { margin-bottom: 1rem; }
+  .pe-field label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 0.25rem; }
+  .profile-input {
+    width: 100%; padding: 0.65rem 1rem; border: 1.5px solid #e0e0e0; border-radius: 10px;
+    font-size: 0.95rem; font-family: 'Poppins', sans-serif; transition: border-color .2s;
+    background: #fafafa; box-sizing: border-box;
+  }
+  .profile-input:focus { border-color: #7748FF; outline: none; background: #fff; }
+  textarea.profile-input { resize: vertical; }
+  .pe-errors { color: #ef4444; font-size: 0.82rem; margin-top: 0.2rem; }
+  .pe-submit {
+    margin-top: 1.8rem; background: #7748FF; color: #fff; border: none; padding: 0.7rem 2.5rem;
+    border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;
+    transition: background .2s;
+  }
+  .pe-submit:hover { background: #5c2ee0; }
+
+  /* ===== AVATAR UPLOAD ===== */
+  .avatar-section {
+    display: flex; align-items: center; gap: 1.5rem;
+    margin-bottom: 1.8rem; padding-bottom: 1.5rem;
+    border-bottom: 1px solid #f0ecff;
+  }
+  .avatar-preview {
+    width: 100px; height: 100px; border-radius: 18px; flex-shrink: 0;
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+  }
+  .avatar-preview img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .avatar-preview .avatar-placeholder {
+    font-size: 2.8rem; color: rgba(255,255,255,.4);
+  }
+  .avatar-info { flex: 1; position: relative; }
+  .avatar-info h4 {
+    font-size: .95rem; font-weight: 700; color: #1a1a2e; margin: 0 0 .3rem;
+  }
+  .avatar-info p {
+    font-size: .78rem; color: #999; margin: 0 0 .8rem; line-height: 1.4;
+  }
+  .avatar-actions { display: flex; gap: .5rem; align-items: center; }
+  .avatar-upload-btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: #7748FF; color: #fff; padding: .5rem 1.2rem;
+    border-radius: 10px; font-size: .82rem; font-weight: 600;
+    cursor: pointer; font-family: 'Poppins', sans-serif;
+    transition: background .2s;
+  }
+  .avatar-upload-btn:hover { background: #5c2ee0; }
+  .avatar-remove-btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: #fff0f0; color: #ef4444; padding: .5rem 1rem;
+    border-radius: 10px; font-size: .82rem; font-weight: 600;
+    cursor: pointer; font-family: 'Poppins', sans-serif;
+    border: none; transition: background .2s;
+  }
+  .avatar-remove-btn:hover { background: #fee2e2; }
+  .avatar-file-input { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="bg-blob-wrap">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+</div>
+<div class="pe-wrap">
+  <a href="javascript:history.back()" class="pe-back"><i class="bi bi-arrow-left"></i> Назад</a>
+  <div class="pe-card">
+    <div class="pe-title">Редактирование профиля</div>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      {# ===== AVATAR SECTION ===== #}
+      <div class="avatar-section">
+        <div class="avatar-preview" id="avatarPreview">
+          {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" alt="Аватар" id="avatarImg">
+          {% else %}
+            <i class="bi bi-person-fill avatar-placeholder" id="avatarPlaceholder"></i>
+          {% endif %}
+        </div>
+        <div class="avatar-info">
+          <h4>Фото профиля</h4>
+          <p>JPG, PNG или GIF. Максимум 5 МБ.</p>
+          <div class="avatar-actions">
+            <label class="avatar-upload-btn" for="avatarInput">
+              <i class="bi bi-cloud-arrow-up"></i> Загрузить
+            </label>
+            {% if user.avatar %}
+              <button type="button" class="avatar-remove-btn" id="avatarRemoveBtn" onclick="removeAvatar()">
+                <i class="bi bi-trash"></i> Удалить
+              </button>
+            {% endif %}
+          </div>
+          <div style="position:absolute;width:0;height:0;overflow:hidden;opacity:0;">
+            {{ user_form.avatar }}
+          </div>
+          {% if user_form.avatar.errors %}
+            <div class="pe-errors" style="margin-top:.3rem">{{ user_form.avatar.errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ===== MAIN FIELDS (skip avatar, already rendered above) ===== #}
+      <div class="pe-section">Основные данные</div>
+      {% for field in user_form %}
+        {% if field.name != 'avatar' %}
+        <div class="pe-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="pe-errors">{{ field.errors.0 }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+
+      {% if profile_form %}
+        <div class="pe-section">Дополнительно</div>
+        {% for field in profile_form %}
+          <div class="pe-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <div class="pe-errors">{{ field.errors.0 }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <input type="hidden" name="avatar_clear" id="avatarClearFlag" value="">
+      <button type="submit" class="pe-submit">Сохранить</button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+  var fileInput = document.getElementById('id_avatar');
+  if (fileInput) {
+    fileInput.id = 'avatarInput';
+    fileInput.className = 'avatar-file-input';
+    fileInput.setAttribute('accept', 'image/*');
+  }
+
+  var inp = document.getElementById('avatarInput');
+  if (inp) {
+    inp.addEventListener('change', function(){
+      var file = this.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Файл слишком большой. Максимум 5 МБ.');
+        this.value = '';
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var preview = document.getElementById('avatarPreview');
+        preview.innerHTML = '<img src="' + e.target.result + '" alt="Аватар" id="avatarImg">';
+      };
+      reader.readAsDataURL(file);
+      document.getElementById('avatarClearFlag').value = '';
+    });
+  }
+})();
+
+function removeAvatar() {
+  var preview = document.getElementById('avatarPreview');
+  preview.innerHTML = '<i class="bi bi-person-fill avatar-placeholder" id="avatarPlaceholder"></i>';
+  var inp = document.getElementById('avatarInput');
+  if (inp) inp.value = '';
+  // Set the clear checkbox if Django's ClearableFileInput generated one
+  var clearCb = document.querySelector('input[name="avatar-clear"]');
+  if (clearCb) clearCb.checked = true;
+  document.getElementById('avatarClearFlag').value = '1';
+  var rmBtn = document.getElementById('avatarRemoveBtn');
+  if (rmBtn) rmBtn.style.display = 'none';
+}
+</script>
+{% endblock %}

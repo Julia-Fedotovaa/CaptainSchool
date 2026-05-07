@@ -1,0 +1,362 @@
+{% extends "base_template.html" %}
+{% load static %}
+{% load edu_tags %}
+{% block title %}Все курсы{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #7748FF; }
+.site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
+
+/* ── Background blobs ── */
+.bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bg-blob { position: absolute; background: #fff; border-radius: 50%; }
+.bg-blob-1 { width: 500px; height: 500px; top: 10%; left: -180px; opacity: .10; }
+.bg-blob-2 { width: 380px; height: 380px; top: 50%; right: -120px; opacity: .09; }
+.bg-blob-3 { width: 260px; height: 260px; bottom: 5%; left: 30%; opacity: .07; }
+
+/* ── Hero ── */
+.ac-hero {
+  position: relative; z-index: 1;
+  max-width: 1100px; margin: 0 auto;
+  padding: 1rem 2rem 2.5rem;
+}
+.ac-hero h1 { color: #fff; font-size: 2.6rem; font-weight: 800; margin-bottom: .5rem; }
+.ac-hero p { color: rgba(255,255,255,.65); font-size: 1.05rem; margin-bottom: 1.5rem; }
+
+/* Filters */
+.ac-filters { display: flex; gap: .6rem; flex-wrap: wrap; }
+.ac-filter-btn {
+  padding: .5rem 1.3rem; border-radius: 12px; border: 2px solid rgba(255,255,255,.25);
+  background: transparent; color: rgba(255,255,255,.85); font-size: .88rem;
+  font-weight: 600; font-family: 'Poppins', sans-serif; cursor: pointer;
+  text-decoration: none; transition: all .2s;
+}
+.ac-filter-btn:hover, .ac-filter-btn.active {
+  background: #fff; color: #7748FF; border-color: #fff;
+}
+
+/* ── Content ── */
+.ac-content {
+  position: relative; z-index: 1;
+  max-width: 1100px; margin: 0 auto; padding: 0 2rem 5rem;
+}
+
+.ac-section-title {
+  font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 1rem; margin-top: 2.5rem;
+  display: flex; align-items: center; gap: .5rem;
+}
+.ac-section-title:first-child { margin-top: 0; }
+.ac-section-title .ac-count {
+  background: rgba(255,255,255,.2); color: #fff; font-size: .75rem; font-weight: 700;
+  padding: .2rem .65rem; border-radius: 8px;
+}
+
+/* Grid */
+.ac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
+
+/* Card */
+.ac-card {
+  background: #fff; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+  transition: transform .2s, box-shadow .2s;
+  text-decoration: none; color: inherit; display: flex; flex-direction: column;
+}
+.ac-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,.15); }
+.ac-card-img {
+  height: 140px; background: linear-gradient(135deg, #a78bff 0%, #7748FF 100%);
+  display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+}
+.ac-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.ac-card-img-placeholder { font-size: 3rem; color: rgba(255,255,255,.35); }
+.ac-card-category {
+  position: absolute; top: .8rem; left: .8rem;
+  background: rgba(0,0,0,.25); backdrop-filter: blur(4px);
+  color: #fff; font-size: .72rem; font-weight: 700;
+  padding: .2rem .7rem; border-radius: 6px;
+}
+.ac-card-body { padding: 1.2rem 1.3rem; flex: 1; display: flex; flex-direction: column; }
+.ac-card-title { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; margin-bottom: .4rem; line-height: 1.3; }
+.ac-card-desc {
+  font-size: .82rem; color: #888; line-height: 1.5; margin-bottom: .8rem;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ac-card-meta { display: flex; gap: 1rem; font-size: .78rem; color: #aaa; margin-top: auto; margin-bottom: .8rem; }
+.ac-card-meta i { color: #c4b0ff; }
+
+/* Progress bar inside card */
+.ac-card-progress { margin-bottom: .6rem; }
+.ac-card-progress-bar { height: 6px; background: #ede9fe; border-radius: 3px; overflow: hidden; }
+.ac-card-progress-fill { height: 100%; background: linear-gradient(90deg, #7748FF, #b08aff); border-radius: 3px; }
+.ac-card-progress-label { font-size: .72rem; color: #999; margin-top: .2rem; }
+
+/* Footer actions */
+.ac-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.ac-card-btn {
+  padding: .45rem 1.2rem; border-radius: 10px; border: none;
+  font-size: .82rem; font-weight: 600; font-family: 'Poppins', sans-serif;
+  cursor: pointer; text-decoration: none; transition: all .2s;
+}
+.ac-btn-primary { background: #7748FF; color: #fff; }
+.ac-btn-primary:hover { background: #5c2ee0; color: #fff; }
+.ac-btn-outline { background: transparent; color: #7748FF; border: 1.5px solid #7748FF; }
+.ac-btn-outline:hover { background: #7748FF; color: #fff; }
+.ac-btn-enrolled { background: #dcfce7; color: #15803d; cursor: default; }
+.ac-btn-edit { background: #f5f3ff; color: #7748FF; }
+.ac-btn-edit:hover { background: #ede9fe; }
+.ac-btn-parent { background: #fef3c7; color: #92400e; }
+.ac-btn-parent:hover { background: #fde68a; }
+
+.ac-card-rating { display: flex; align-items: center; gap: .3rem; font-size: .82rem; color: #F59E0B; font-weight: 600; }
+
+.ac-empty {
+  text-align: center; padding: 3rem; color: rgba(255,255,255,.5); font-size: .95rem;
+  background: rgba(255,255,255,.08); border-radius: 18px;
+}
+
+footer { background: linear-gradient(180deg, #5a2ee0, #7748FF) !important; color: rgba(255,255,255,.75) !important; }
+footer h5 { color: #fff !important; font-weight: 700 !important; }
+footer ul li a { color: rgba(255,255,255,.68) !important; }
+
+@media (max-width: 700px) {
+  .ac-grid { grid-template-columns: 1fr; }
+  .ac-hero h1 { font-size: 1.8rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-blob-wrap">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
+</div>
+
+<section class="ac-hero">
+  <h1>Все курсы</h1>
+  <p>Выберите курс и начните обучение</p>
+  <div class="ac-filters">
+    <a href="{% url 'all_courses' %}" class="ac-filter-btn{% if not active_category %} active{% endif %}">Все</a>
+    {% for cat in categories %}
+      <a href="?category={{ cat.id }}" class="ac-filter-btn{% if active_category == cat.id|stringformat:'d' %} active{% endif %}">{{ cat.name }}</a>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="ac-content">
+
+  {# ── MACRO: card ── #}
+  {% if user.is_authenticated and user.role == 'student' %}
+
+    {# === ENROLLED === #}
+    {% if enrolled_courses %}
+      <div class="ac-section-title">
+        <i class="bi bi-book-fill"></i> Мои курсы
+        <span class="ac-count">{{ enrolled_courses|length }}</span>
+      </div>
+      <div class="ac-grid">
+        {% for course in enrolled_courses %}
+          <a href="{% url 'course_detail' course.id %}" class="ac-card">
+            <div class="ac-card-img">
+              {% if course.image %}<img src="{{ course.image.url }}" alt="">{% else %}<div class="ac-card-img-placeholder"><i class="bi bi-book-fill"></i></div>{% endif %}
+              {% if course.category %}<span class="ac-card-category">{{ course.category.name }}</span>{% endif %}
+            </div>
+            <div class="ac-card-body">
+              <div class="ac-card-title">{{ course.name }}</div>
+              <div class="ac-card-meta">
+                <span><i class="bi bi-collection-play"></i> {{ course.lessons_count }} {{ course.lessons_count|pluralize_lessons }}</span>
+              </div>
+              <div class="ac-card-progress">
+                <div class="ac-card-progress-bar">
+                  <div class="ac-card-progress-fill" style="width:{{ course.progress_percent }}%"></div>
+                </div>
+                <div class="ac-card-progress-label">{{ course.progress_percent }}% пройдено</div>
+              </div>
+              <div class="ac-card-footer">
+                <span class="ac-card-btn ac-btn-enrolled"><i class="bi bi-check-circle-fill"></i> Записаны</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {# === AVAILABLE === #}
+    {% if available_courses %}
+      <div class="ac-section-title">
+        <i class="bi bi-plus-circle"></i> Доступные курсы
+        <span class="ac-count">{{ available_courses|length }}</span>
+      </div>
+      <div class="ac-grid">
+        {% for course in available_courses %}
+          <a href="{% url 'course_detail' course.id %}" class="ac-card">
+            <div class="ac-card-img">
+              {% if course.image %}<img src="{{ course.image.url }}" alt="">{% else %}<div class="ac-card-img-placeholder"><i class="bi bi-book-fill"></i></div>{% endif %}
+              {% if course.category %}<span class="ac-card-category">{{ course.category.name }}</span>{% endif %}
+            </div>
+            <div class="ac-card-body">
+              <div class="ac-card-title">{{ course.name }}</div>
+              <div class="ac-card-desc">{{ course.description|truncatechars:100 }}</div>
+              <div class="ac-card-meta">
+                <span><i class="bi bi-collection-play"></i> {{ course.lessons_count }} {{ course.lessons_count|pluralize_lessons }}</span>
+              </div>
+              <div class="ac-card-footer">
+                <span class="ac-card-btn ac-btn-primary">Начать обучение</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if not enrolled_courses and not available_courses %}
+      <div class="ac-empty"><i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>Курсов пока нет</div>
+    {% endif %}
+
+  {# ── MENTOR ── #}
+  {% elif user.is_authenticated and user.role == 'mentor' %}
+
+    {% if my_courses %}
+      <div class="ac-section-title">
+        <i class="bi bi-pencil-square"></i> Мои курсы
+        <span class="ac-count">{{ my_courses|length }}</span>
+      </div>
+      <div class="ac-grid">
+        {% for course in my_courses %}
+          <a href="{% url 'course_detail' course.id %}" class="ac-card">
+            <div class="ac-card-img">
+              {% if course.image %}<img src="{{ course.image.url }}" alt="">{% else %}<div class="ac-card-img-placeholder"><i class="bi bi-book-fill"></i></div>{% endif %}
+              {% if course.category %}<span class="ac-card-category">{{ course.category.name }}</span>{% endif %}
+            </div>
+            <div class="ac-card-body">
+              <div class="ac-card-title">{{ course.name }}</div>
+              <div class="ac-card-meta">
+                <span><i class="bi bi-collection-play"></i> {{ course.lessons_count }} {{ course.lessons_count|pluralize_lessons }}</span>
+              </div>
+              <div class="ac-card-footer">
+                <span class="ac-card-btn ac-btn-edit"><i class="bi bi-pencil"></i> Редактировать</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if other_courses %}
+      <div class="ac-section-title">
+        <i class="bi bi-collection-play" style="opacity:.6"></i> Все остальные курсы
+        <span class="ac-count">{{ other_courses|length }}</span>
+      </div>
+      <div class="ac-grid">
+        {% for course in other_courses %}
+          <a href="{% url 'course_detail' course.id %}" class="ac-card">
+            <div class="ac-card-img">
+              {% if course.image %}<img src="{{ course.image.url }}" alt="">{% else %}<div class="ac-card-img-placeholder"><i class="bi bi-book-fill"></i></div>{% endif %}
+              {% if course.category %}<span class="ac-card-category">{{ course.category.name }}</span>{% endif %}
+            </div>
+            <div class="ac-card-body">
+              <div class="ac-card-title">{{ course.name }}</div>
+              <div class="ac-card-desc">{{ course.description|truncatechars:100 }}</div>
+              <div class="ac-card-meta">
+                <span><i class="bi bi-collection-play"></i> {{ course.lessons_count }} {{ course.lessons_count|pluralize_lessons }}</span>
+              </div>
+              <div class="ac-card-footer">
+                <span class="ac-card-btn ac-btn-outline">Подробнее</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if not my_courses and not other_courses %}
+      <div class="ac-empty"><i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>Курсов пока нет</div>
+    {% endif %}
+
+  {# ── PARENT ── #}
+  {% elif user.is_authenticated and user.role == 'parent' %}
+
+    {% if child_courses %}
+      <div class="ac-section-title">
+        <i class="bi bi-person-hearts"></i> Курсы ребёнка
+        <span class="ac-count">{{ child_courses|length }}</span>
+      </div>
+      <div class="ac-grid">
+        {% for course in child_courses %}
+          <a href="{% url 'course_detail' course.id %}" class="ac-card">
+            <div class="ac-card-img">
+              {% if course.image %}<img src="{{ course.image.url }}" alt="">{% else %}<div class="ac-card-img-placeholder"><i class="bi bi-book-fill"></i></div>{% endif %}
+              {% if course.category %}<span class="ac-card-category">{{ course.category.name }}</span>{% endif %}
+            </div>
+            <div class="ac-card-body">
+              <div class="ac-card-title">{{ course.name }}</div>
+              <div class="ac-card-meta">
+                <span><i class="bi bi-collection-play"></i> {{ course.lessons_count }} {{ course.lessons_count|pluralize_lessons }}</span>
+              </div>
+              <div class="ac-card-footer">
+                <span class="ac-card-btn ac-btn-enrolled"><i class="bi bi-check-circle-fill"></i> Ребёнок записан</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if child_available %}
+      <div class="ac-section-title">
+        <i class="bi bi-plus-circle"></i> Доступные курсы
+        <span class="ac-count">{{ child_available|length }}</span>
+      </div>
+      <div class="ac-grid">
+        {% for course in child_available %}
+          <a href="{% url 'course_detail' course.id %}" class="ac-card">
+            <div class="ac-card-img">
+              {% if course.image %}<img src="{{ course.image.url }}" alt="">{% else %}<div class="ac-card-img-placeholder"><i class="bi bi-book-fill"></i></div>{% endif %}
+              {% if course.category %}<span class="ac-card-category">{{ course.category.name }}</span>{% endif %}
+            </div>
+            <div class="ac-card-body">
+              <div class="ac-card-title">{{ course.name }}</div>
+              <div class="ac-card-desc">{{ course.description|truncatechars:100 }}</div>
+              <div class="ac-card-meta">
+                <span><i class="bi bi-collection-play"></i> {{ course.lessons_count }} {{ course.lessons_count|pluralize_lessons }}</span>
+              </div>
+              <div class="ac-card-footer">
+                <span class="ac-card-btn ac-btn-parent"><i class="bi bi-person-plus-fill"></i> Записать ребёнка</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if not child_courses and not child_available %}
+      <div class="ac-empty"><i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>Курсов пока нет</div>
+    {% endif %}
+
+  {# ── GUEST / ADMIN ── #}
+  {% else %}
+    <div class="ac-grid">
+      {% for course in courses %}
+        <a href="{% url 'course_detail' course.id %}" class="ac-card">
+          <div class="ac-card-img">
+            {% if course.image %}<img src="{{ course.image.url }}" alt="">{% else %}<div class="ac-card-img-placeholder"><i class="bi bi-book-fill"></i></div>{% endif %}
+            {% if course.category %}<span class="ac-card-category">{{ course.category.name }}</span>{% endif %}
+          </div>
+          <div class="ac-card-body">
+            <div class="ac-card-title">{{ course.name }}</div>
+            <div class="ac-card-desc">{{ course.description|truncatechars:100 }}</div>
+            <div class="ac-card-meta">
+              <span><i class="bi bi-collection-play"></i> {{ course.lessons_count }} {{ course.lessons_count|pluralize_lessons }}</span>
+            </div>
+            <div class="ac-card-footer">
+              <span class="ac-card-btn ac-btn-outline">Подробнее</span>
+            </div>
+          </div>
+        </a>
+      {% empty %}
+        <div class="ac-empty"><i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>Курсов пока нет</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

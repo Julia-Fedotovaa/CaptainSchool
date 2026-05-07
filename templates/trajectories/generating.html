@@ -1,0 +1,95 @@
+{% extends "base_template.html" %}
+{% block title %}Генерация траектории{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #7748FF; }
+.site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
+
+.gen-wrap {
+  position: relative; z-index: 1;
+  max-width: 600px; margin: 0 auto; padding: 6rem 2rem 5rem;
+  text-align: center; color: #fff;
+}
+
+.gen-spinner {
+  width: 80px; height: 80px; margin: 0 auto 2rem;
+  border: 5px solid rgba(255,255,255,.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.gen-title { font-size: 1.8rem; font-weight: 800; margin-bottom: .6rem; }
+.gen-subtitle { font-size: 1rem; opacity: .75; margin-bottom: 2rem; line-height: 1.6; }
+
+.gen-done {
+  display: none;
+  animation: fadeUp .5s ease forwards;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gen-check {
+  width: 70px; height: 70px; margin: 0 auto 1.5rem;
+  background: rgba(255,255,255,.18); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+}
+
+.gen-stats { display: flex; gap: 2rem; justify-content: center; margin-bottom: 2rem; }
+.gen-stat-num { font-size: 2rem; font-weight: 800; }
+.gen-stat-lbl { font-size: .82rem; opacity: .7; }
+
+.gen-btn {
+  display: inline-block; background: #fff; color: #7748FF;
+  padding: .75rem 2.5rem; border-radius: 50px; font-size: 1rem; font-weight: 700;
+  text-decoration: none; box-shadow: 0 4px 20px rgba(0,0,0,.12);
+  transition: transform .2s, background .2s;
+}
+.gen-btn:hover { transform: translateY(-2px); color: #5c2ee0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gen-wrap">
+  <div id="loading">
+    <div class="gen-spinner"></div>
+    <div class="gen-title">Генерируем траекторию...</div>
+    <div class="gen-subtitle">
+      Подбираем курсы по направлению «{{ category.name }}»<br>
+      и выстраиваем оптимальный порядок прохождения
+    </div>
+  </div>
+
+  <div class="gen-done" id="done">
+    <div class="gen-check"><i class="bi bi-check-lg"></i></div>
+    <div class="gen-title">Траектория готова!</div>
+    <div class="gen-subtitle">
+      Мы подобрали для тебя курсы по направлению «{{ category.name }}»
+      и записали тебя на них.
+    </div>
+    <div class="gen-stats">
+      <div>
+        <div class="gen-stat-num">{{ courses_count }}</div>
+        <div class="gen-stat-lbl">курсов</div>
+      </div>
+      <div>
+        <div class="gen-stat-num">{{ category.name|truncatechars:12 }}</div>
+        <div class="gen-stat-lbl">направление</div>
+      </div>
+    </div>
+    <a href="{% url 'student_dashboard' %}" class="gen-btn">Перейти в кабинет</a>
+  </div>
+</div>
+
+<script>
+  setTimeout(function() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('done').style.display = 'block';
+  }, 2500);
+</script>
+{% endblock %}

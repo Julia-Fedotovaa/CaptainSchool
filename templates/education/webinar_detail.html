@@ -1,0 +1,98 @@
+{% extends "base_template.html" %}
+{% block title %}Вебинар — {{ schedule.course.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bg-blob { position: absolute; background: #fff; border-radius: 50%; }
+.bg-blob-1 { width: 450px; height: 450px; top: 25%; left: -150px; opacity: .13; }
+.bg-blob-2 { width: 360px; height: 360px; top: 55%; right: -110px; opacity: .11; }
+
+  body { background: #7748FF; }
+  .site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
+  .wd-wrap { max-width: 680px; margin: 0 auto; padding: 0 2rem 5rem; position: relative; z-index: 1; }
+  .wd-card {
+    background: #fff; border-radius: 22px; padding: 2.5rem 2.5rem 2rem;
+    box-shadow: 0 8px 40px rgba(40,0,120,0.10);
+  }
+  .wd-back { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; display: inline-block; margin-bottom: 1.2rem; }
+  .wd-back:hover { color: #fff; }
+  .wd-label { font-size: 0.78rem; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.2rem; }
+  .wd-title { font-size: 1.6rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1.5rem; }
+  .wd-row { display: flex; gap: 2rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+  .wd-item { flex: 1; min-width: 140px; }
+  .wd-item-label { font-size: 0.78rem; color: #999; font-weight: 600; margin-bottom: 0.15rem; }
+  .wd-item-val { font-size: 1rem; color: #1a1a2e; font-weight: 600; }
+  .wd-link { display: inline-block; margin-top: 1.5rem; background: #7748FF; color: #fff; padding: 0.65rem 2rem;
+    border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: background .2s; }
+  .wd-link:hover { background: #5c2ee0; color: #fff; }
+  .wd-desc { margin-top: 1.2rem; color: #555; line-height: 1.6; }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="bg-blob-wrap">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+</div>
+<div class="wd-wrap">
+  <a href="javascript:history.back()" class="wd-back"><i class="bi bi-arrow-left"></i> Назад</a>
+  <div class="wd-card">
+    <div class="wd-label">Вебинар</div>
+    <div class="wd-title">{{ schedule.course.name }}</div>
+
+    <div class="wd-row">
+      <div class="wd-item">
+        <div class="wd-item-label">Дата</div>
+        <div class="wd-item-val">{{ schedule.date|date:"d.m.Y" }}</div>
+      </div>
+      <div class="wd-item">
+        <div class="wd-item-label">Время</div>
+        <div class="wd-item-val">{{ schedule.start_time|time:"H:i" }} — {{ schedule.end_time|time:"H:i" }}</div>
+      </div>
+      <div class="wd-item">
+        <div class="wd-item-label">Формат</div>
+        <div class="wd-item-val">{{ schedule.lesson_format }}</div>
+      </div>
+    </div>
+
+    <div class="wd-row">
+      {% if schedule.mentor %}
+      <div class="wd-item">
+        <div class="wd-item-label">Наставник</div>
+        <div class="wd-item-val">{{ schedule.mentor.user.get_full_name }}</div>
+      </div>
+      {% endif %}
+      {% if schedule.course.category %}
+      <div class="wd-item">
+        <div class="wd-item-label">Категория</div>
+        <div class="wd-item-val">{{ schedule.course.category.name }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if schedule.description %}
+    <div class="wd-desc">{{ schedule.description }}</div>
+    {% endif %}
+
+    {% if schedule.students.exists %}
+    <div style="margin-top:1.2rem;">
+      <div class="wd-item-label">Назначенные ученики</div>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem;">
+        {% for s in schedule.students.all %}
+        <span style="background:#f0e8ff;color:#5c2ee0;padding:.25rem .8rem;border-radius:20px;font-size:.85rem;font-weight:600;">
+          {{ s.user.get_full_name }}
+        </span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if schedule.location %}
+    <a href="{{ schedule.location }}" target="_blank" class="wd-link">
+      <i class="bi bi-camera-video-fill"></i> Присоединиться
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

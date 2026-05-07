@@ -1,0 +1,22 @@
+﻿{% extends "base.html" %}
+{% block title %}Удаление{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body text-center">
+        <h5 class="mb-3">Подтвердите удаление</h5>
+        <p>Вы действительно хотите удалить:</p>
+        <p class="fw-bold">{{ object.name }}</p>
+
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger me-2">Удалить</button>
+          <a href="javascript:history.back()" class="btn btn-secondary">Отмена</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

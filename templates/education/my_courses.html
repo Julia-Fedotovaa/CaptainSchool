@@ -1,0 +1,33 @@
+﻿{% extends "base.html" %}
+{% block title %}Мои курсы{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Мои курсы</h2>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Курс</th>
+      <th>Трек</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in enrollments %}
+    <tr>
+      <td>{{ e.course.name }}</td>
+      <td>{{ e.course.track.name }}</td>
+      <td class="text-end">
+        <a href="{% url 'unenroll_course' e.course.id %}" class="btn btn-outline-danger btn-sm">
+          Отписаться
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="{% url 'available_courses' %}" class="btn btn-primary">
+  + Добавить курс
+</a>
+{% endblock %}

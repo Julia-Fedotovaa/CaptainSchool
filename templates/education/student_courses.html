@@ -1,0 +1,35 @@
+﻿{% extends "base.html" %}
+{% block title %}Мои курсы{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Мои курсы</h2>
+
+{% if courses %}
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Курс</th>
+      <th>Трек</th>
+      <th>Формат</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in courses %}
+      <tr>
+        <td>{{ c.name }}</td>
+        <td>{{ c.track.name }}</td>
+        <td>{{ c.format }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="alert alert-info">
+  Вы пока не записаны ни на один курс.
+</div>
+{% endif %}
+
+<a href="{% url 'available_courses' %}" class="btn btn-primary">
+  + Записаться на курс
+</a>
+{% endblock %}

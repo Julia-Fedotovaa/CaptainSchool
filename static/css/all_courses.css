@@ -1,0 +1,139 @@
+﻿
+.filter-btn {
+    background: #fff;
+    color: #7748FF;
+    border: none;
+    font-size: 1.75rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    z-index: 5;
+}
+
+.text-white {
+    color: #fff;
+    font-size: 4.5rem;
+    font-weight: 600;
+    margin-bottom: 4rem;
+}
+
+.category-filters {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 6rem;
+    flex-wrap: wrap;
+}
+
+.courses-wave {
+    top: 20rem;
+    position: absolute;
+}
+
+.category-course-card {
+    position: relative;
+    color: #fff;
+    border-radius: 2.5rem;
+    /*box-shadow: 0 5px 10px rgba(0,0,0,0.05);*/
+    overflow: hidden;
+    flex: 1 1 250px;
+    width: 18rem;
+    height: 14rem;
+    transition: transform 0.2s ease;
+    box-shadow: 0 0 2.5rem rgba(255, 255, 255, 0.4);
+}
+
+.course-name {
+    position: absolute;
+    bottom: 0;
+    max-width: 15rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-left: 1rem;
+    margin-bottom: 1rem;
+}
+
+
+/* Шапка */
+.courses-hero {
+    padding-top: 10rem;
+    padding-bottom: 1rem; /* место для волны */
+    background: linear-gradient(180deg, #8869f6, #6d45f5);
+    position: relative;
+}
+
+/* Волна под шапкой */
+.wave-divider {
+    position: absolute;
+    bottom: -1px; /* чтобы не было белой щели */
+    left: 0;
+    width: 100%;
+    height: 300px;
+}
+
+/* Белая секция */
+.courses-main-content {
+    padding-bottom: 10rem;
+    background: #6d45f5;
+    position: relative;
+    overflow: hidden;
+    /*bottom: 12rem;*/
+}
+
+/* Карточки внутри белой секции */
+.category-course-card {
+    position: relative;
+    border-radius: 2rem;
+    overflow: hidden;
+    height: 14rem;
+    /* Тень делаем чуть заметнее на белом фоне */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.category-course-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Нижняя волна */
+.bottom-wave-container {
+    /*background-color: #fff;*/
+    line-height: 0;
+}
+
+.bottom-wave-container svg {
+    width: 100%;
+    height: 300px;
+}
+
+/* Белая картинка как подложка */
+.modal-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100%); /* Учитываем высоту волны */
+    z-index: 0; /* Уходит под контент */
+
+    /* Используем ваши настройки border-image, но убедитесь, что они корректны */
+    border-image-source: url("../images/Subtract.png");
+    border-image-slice: 975 1825 987 1825 fill;
+    border-image-width: 2000px 2000px 2000px 2000px;
+    border-image-outset: 0px 0px 0px 0px;
+    border-style: solid;
+    border-width: 0; /* Если картинка идет через fill, ширина границ может не требоваться */
+
+    /* Если border-image капризничает, можно попробовать просто фоном:
+    background: url("../images/Subtract.png") no-repeat center center;
+    background-size: cover;
+    */
+}
+
+.courses-main-content .container {
+    position: relative;
+    z-index: 1; /* Чтобы карточки были выше фона */
+}

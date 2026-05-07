@@ -1,0 +1,59 @@
+﻿{% extends "base.html" %}
+{% block title %}Администратор{% endblock %}
+
+{% block content %}
+  <h2 class="mb-4">Панель администратора</h2>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Треки</h5>
+          <p class="card-text">Управление направлениями обучения</p>
+          <a href="{% url 'track_list' %}" class="btn btn-primary">Открыть</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Курсы</h5>
+          <p class="card-text">Создание и редактирование курсов</p>
+          <a href="{% url 'course_list' %}" class="btn btn-primary">Открыть</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Расписание</h5>
+          <p class="card-text">Формирование занятий</p>
+          <a href="{% url 'schedule_list' %}" class="btn btn-primary">Открыть</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Прогресс</h5>
+          <p class="card-text">Результаты обучения</p>
+          <a href="{% url 'progress_list' %}" class="btn btn-primary">Открыть</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Траектории</h5>
+          <p class="card-text">Индивидуальные маршруты</p>
+          <a href="{% url 'trajectory_list' %}" class="btn btn-primary">Открыть</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}

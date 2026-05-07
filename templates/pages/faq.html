@@ -1,0 +1,144 @@
+{% extends "base_template.html" %}
+{% block title %}FAQ — EduPlatform{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #f6f4fe; }
+.faq-hero {
+  background: linear-gradient(135deg, #7748FF 0%, #5c2ee0 100%);
+  padding: 10rem 0 4rem; text-align: center; position: relative; overflow: hidden;
+}
+.faq-hero::before {
+  content: ''; position: absolute; width: 400px; height: 400px;
+  background: rgba(255,255,255,.07); border-radius: 50%;
+  top: -100px; left: -80px;
+}
+.faq-hero h1 { font-size: 2.8rem; font-weight: 800; color: #fff; margin-bottom: .6rem; position: relative; z-index: 1; }
+.faq-hero p { font-size: 1.1rem; color: rgba(255,255,255,.7); max-width: 560px; margin: 0 auto; position: relative; z-index: 1; }
+
+.faq-wrap { max-width: 760px; margin: 0 auto; padding: 3rem 2rem 4rem; }
+
+.faq-item {
+  background: #fff; border-radius: 16px; margin-bottom: .8rem;
+  box-shadow: 0 2px 12px rgba(40,0,120,.05); overflow: hidden;
+}
+.faq-q {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.2rem 1.5rem; cursor: pointer; gap: 1rem;
+  font-size: .95rem; font-weight: 600; color: #1a1a2e;
+  transition: background .15s; user-select: none;
+}
+.faq-q:hover { background: #faf8ff; }
+.faq-q i { font-size: .8rem; color: #7748FF; transition: transform .25s; flex-shrink: 0; }
+.faq-item.open .faq-q i { transform: rotate(180deg); }
+.faq-a {
+  max-height: 0; overflow: hidden; transition: max-height .3s ease;
+  padding: 0 1.5rem;
+}
+.faq-item.open .faq-a { max-height: 300px; }
+.faq-a-inner {
+  padding: 0 0 1.2rem; font-size: .88rem; color: #666; line-height: 1.7;
+  border-top: 1px solid #f0ecff; padding-top: .8rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="faq-hero">
+  <h1>Частые вопросы</h1>
+  <p>Ответы на самые популярные вопросы о нашей платформе</p>
+</section>
+
+<div class="faq-wrap">
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      <span>Как зарегистрироваться на платформе?</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="faq-a"><div class="faq-a-inner">
+      Нажмите кнопку «Войти» в верхнем меню, затем перейдите по ссылке «Зарегистрироваться». Заполните форму, выберите роль (ученик или родитель) и создайте аккаунт. Родители также могут добавлять детей через личный кабинет.
+    </div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      <span>Платформа бесплатная?</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="faq-a"><div class="faq-a-inner">
+      На бесплатном тарифе «Старт» доступны 5 курсов и входное тестирование. Для доступа ко всем курсам, персональному ментору и вебинарам предусмотрены платные тарифы «Стандарт» и «Премиум».
+    </div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      <span>Как записать ребёнка на курс?</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="faq-a"><div class="faq-a-inner">
+      Зайдите в личный кабинет родителя, добавьте ребёнка (если ещё не добавлен), затем перейдите на страницу нужного курса и нажмите «Записать ребёнка». Курс появится в кабинете ученика.
+    </div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      <span>Что такое индивидуальная траектория обучения?</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="faq-a"><div class="faq-a-inner">
+      На основе входного тестирования платформа определяет уровень и интересы ученика, после чего формирует персональную последовательность курсов. Это позволяет каждому ребёнку учиться в своём темпе и по тем направлениям, которые ему наиболее интересны.
+    </div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      <span>Как проходят вебинары?</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="faq-a"><div class="faq-a-inner">
+      Вебинары проводятся онлайн по расписанию, которое видно в личном кабинете. За проведение отвечает ментор курса. Ссылка для подключения появляется в карточке вебинара. Формат — групповой или индивидуальный в зависимости от тарифа.
+    </div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      <span>Могу ли я видеть прогресс своего ребёнка?</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="faq-a"><div class="faq-a-inner">
+      Да, в личном кабинете родителя отображаются все курсы ребёнка, процент прохождения, достижения и расписание вебинаров. Вы также можете просматривать логин и пароль ребёнка в любой момент.
+    </div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      <span>Как получить достижение (бейдж)?</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="faq-a"><div class="faq-a-inner">
+      Бейджи выдаются автоматически за прохождение уроков, завершение курсов и другие активности на платформе. Все полученные бейджи отображаются в личном кабинете ученика.
+    </div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      <span>Как связаться с поддержкой?</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="faq-a"><div class="faq-a-inner">
+      Напишите нам на <a href="mailto:info@eduplatform.ru" style="color:#7748FF;font-weight:600">info@eduplatform.ru</a> или позвоните по телефону +7 (800) 123-45-67. Мы отвечаем в течение 24 часов в рабочие дни.
+    </div></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleFaq(el) {
+  var item = el.parentElement;
+  var wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(function(i) { i.classList.remove('open'); });
+  if (!wasOpen) item.classList.add('open');
+}
+</script>
+{% endblock %}

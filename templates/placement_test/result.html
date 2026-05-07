@@ -1,0 +1,225 @@
+﻿{% extends "base_template.html" %}
+{% load static %}
+
+{% block title %}Результаты теста{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #7748FF; }
+.site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
+
+.bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bg-blob { position: absolute; background: #fff; }
+.bg-blob-1 { width: 380px; height: 380px; top: 25%; left: -130px; border-radius: 50%; opacity: .16; }
+.bg-blob-2 { width: 300px; height: 300px; top: 60%; right: -100px; border-radius: 50%; opacity: .13; }
+
+.result-wrapper { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 2rem 5rem; }
+
+.result-title { color: #fff; font-size: 2.8rem; font-weight: 800; margin-bottom: .5rem; }
+.result-subtitle { color: rgba(255,255,255,.75); font-size: 1rem; margin-bottom: 2.5rem; }
+
+/* ── TOP CATEGORIES ── */
+.cats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.1rem; margin-bottom: 2.5rem; }
+
+.cat-card {
+  background: #fff; border-radius: 20px; padding: 1.8rem 2rem;
+  box-shadow: 0 8px 40px rgba(40,0,120,.14);
+  display: flex; flex-direction: column; gap: .5rem;
+}
+.cat-card-rank { font-size: .75rem; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: .07em; }
+.cat-card-name { font-size: 1.5rem; font-weight: 800; color: #1a1a2e; }
+.cat-card-desc { font-size: .88rem; color: #777; line-height: 1.55; }
+.cat-card-score { margin-top: .4rem; }
+.cat-card-bar { height: 6px; background: #ebebeb; border-radius: 3px; overflow: hidden; margin-top: .3rem; }
+.cat-card-bar-fill { height: 100%; background: linear-gradient(90deg,#7748FF,#b08aff); border-radius: 3px; }
+.cat-card-score-label { font-size: .78rem; color: #999; margin-top: .25rem; }
+
+.cat-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg,#7748FF,#b08aff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; color: #fff; margin-bottom: .4rem;
+}
+
+/* ── RECOMMENDED COURSES ── */
+.section-label {
+  display: inline-block; background: rgba(255,255,255,.22);
+  backdrop-filter: blur(6px); color: #fff; font-weight: 700; font-size: 1rem;
+  padding: .45rem 1.3rem; border-radius: 12px; margin-bottom: 1.2rem;
+}
+
+.rec-courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 1.1rem; margin-bottom: 2.5rem; }
+
+.rec-course-card {
+  background: #fff; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 6px 30px rgba(40,0,120,.12); transition: transform .2s;
+}
+.rec-course-card:hover { transform: translateY(-4px); }
+
+.rec-course-img {
+  height: 130px; background: linear-gradient(135deg,#1e1b4b,#312e81);
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.rec-course-img img { width: 100%; height: 100%; object-fit: cover; }
+.rec-course-img-icon { font-size: 2.5rem; color: rgba(255,255,255,.25); }
+
+.rec-course-cat-badge {
+  position: absolute; top: 10px; left: 10px;
+  background: #7748FF; color: #fff; font-size: .75rem; font-weight: 700;
+  padding: .25rem .7rem; border-radius: 8px;
+}
+
+.rec-course-body { padding: 1rem 1.1rem 1.2rem; }
+.rec-course-name { font-size: .97rem; font-weight: 700; color: #1a1a2e; margin-bottom: .3rem; }
+.rec-course-desc { font-size: .82rem; color: #888; line-height: 1.5; }
+
+/* ── ACTIONS ── */
+.result-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+.btn-purple {
+  background: #fff; color: #7748FF; border: none; border-radius: 50px;
+  padding: .75rem 2.5rem; font-size: 1rem; font-weight: 700;
+  font-family: 'Poppins', sans-serif; cursor: pointer; text-decoration: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,.12); transition: background .2s, transform .15s;
+  display: inline-block;
+}
+.btn-purple:hover { background: #f0e8ff; transform: translateY(-2px); color: #5c2ee0; }
+
+.btn-outline {
+  background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.5);
+  border-radius: 50px; padding: .7rem 2.2rem; font-size: 1rem; font-weight: 700;
+  font-family: 'Poppins', sans-serif; cursor: pointer; text-decoration: none;
+  transition: border-color .2s, background .2s; display: inline-block;
+}
+.btn-outline:hover { border-color: #fff; background: rgba(255,255,255,.1); color: #fff; }
+
+/* Footer */
+footer { background: linear-gradient(180deg,#5a2ee0,#7748FF) !important; color: rgba(255,255,255,.75) !important; padding: 3rem 0 1.5rem !important; }
+footer h5 { color: #fff !important; font-weight: 700 !important; }
+footer ul li a { color: rgba(255,255,255,.68) !important; }
+footer ul li a:hover { color: #ffe866 !important; }
+
+@media (max-width: 600px) {
+  .result-title { font-size: 2rem; }
+  .cats-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-blob-wrap">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+</div>
+
+<div class="result-wrapper">
+
+  <h1 class="result-title">Тест пройден!</h1>
+  <p class="result-subtitle">Вот направления, которые подходят тебе больше всего</p>
+
+  {# ── TOP CATEGORIES ── #}
+  {% if top_cats %}
+  <div class="cats-grid">
+    {% for cat, score in top_cats %}
+    <div class="cat-card">
+      {# Иконка по имени категории #}
+      <div class="cat-icon">
+        {% if "дизайн" in cat.name|lower %}
+          <i class="bi bi-palette-fill"></i>
+        {% elif "программ" in cat.name|lower %}
+          <i class="bi bi-code-slash"></i>
+        {% elif "копир" in cat.name|lower or "текст" in cat.name|lower %}
+          <i class="bi bi-pen-fill"></i>
+        {% elif "маркет" in cat.name|lower %}
+          <i class="bi bi-graph-up-arrow"></i>
+        {% else %}
+          <i class="bi bi-star-fill"></i>
+        {% endif %}
+      </div>
+
+      <div class="cat-card-rank">
+        {% if forloop.first %}🥇 Главная склонность{% else %}🥈 Вторая склонность{% endif %}
+      </div>
+      <div class="cat-card-name">{{ cat.name }}</div>
+
+      <div class="cat-card-desc">
+        {% if "дизайн" in cat.name|lower %}
+          Тебе интересно создавать визуальные образы, работать с цветом, формой и интерфейсами.
+        {% elif "программ" in cat.name|lower %}
+          Тебе нравится думать логически, строить системы и решать задачи с помощью кода.
+        {% elif "копир" in cat.name|lower or "текст" in cat.name|lower %}
+          У тебя хорошо получается выражать мысли словами и убеждать через текст.
+        {% elif "маркет" in cat.name|lower %}
+          Тебя привлекает анализ аудитории, продвижение и работа со стратегией.
+        {% else %}
+          Это направление соответствует твоим ответам.
+        {% endif %}
+      </div>
+
+      <div class="cat-card-score">
+        <div class="cat-card-bar">
+          <div class="cat-card-bar-fill" style="width: {% widthratio score 10 100 %}%"></div>
+        </div>
+        <div class="cat-card-score-label">{{ score }} совпадений из 10</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── RECOMMENDED COURSES ── #}
+  {% if recommended_courses %}
+  <div class="section-label">Подходящие курсы</div>
+  <div class="rec-courses-grid">
+    {% for course, cat in recommended_courses %}
+    <div class="rec-course-card">
+      <div class="rec-course-img">
+        {% if course.image %}
+          <img src="{{ course.image.url }}" alt="{{ course.name }}">
+        {% else %}
+          <i class="bi bi-book-fill rec-course-img-icon"></i>
+        {% endif %}
+        <span class="rec-course-cat-badge">{{ cat.name }}</span>
+      </div>
+      <div class="rec-course-body">
+        <div class="rec-course-name">{{ course.name }}</div>
+        <div class="rec-course-desc">{{ course.description|truncatechars:70 }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:rgba(255,255,255,.65); font-size:.95rem; margin-bottom:2rem;">
+    Курсы по твоим направлениям пока добавляются — загляни позже.
+  </p>
+  {% endif %}
+
+  {# ── GENERATE TRAJECTORY ── #}
+  {% if top_cats %}
+  <div class="section-label">Сгенерировать траекторию</div>
+  <div class="cats-grid" style="margin-bottom:2.5rem;">
+    {% for cat, score in top_cats %}
+    <div class="cat-card" style="text-align:center;">
+      <div class="cat-card-name" style="font-size:1.15rem;">{{ cat.name }}</div>
+      <div class="cat-card-desc" style="font-size:.85rem;">Выбери это направление и мы составим индивидуальный план обучения</div>
+      <form method="post" action="{% url 'generate_trajectory' %}" style="margin-top:.8rem;">
+        {% csrf_token %}
+        <input type="hidden" name="session_id" value="{{ session.id }}">
+        <input type="hidden" name="category_id" value="{{ cat.id }}">
+        <button type="submit" class="btn-purple" style="font-size:.9rem; padding:.6rem 1.8rem;">
+          <i class="bi bi-signpost-split-fill"></i> Выбрать
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── ACTIONS ── #}
+  <div class="result-actions">
+    <a href="{% url 'available_courses' %}" class="btn-purple">Смотреть все курсы</a>
+    <a href="{% url 'student_dashboard' %}" class="btn-outline">В личный кабинет</a>
+  </div>
+
+</div>
+{% endblock %}

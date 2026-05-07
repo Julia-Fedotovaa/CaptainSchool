@@ -1,0 +1,27 @@
+﻿{% extends "base.html" %}
+{% block title %}Курсы ребёнка{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Курсы ребёнка</h2>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Курс</th>
+      <th>Трек</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in enrollments %}
+      <tr>
+        <td>{{ e.course.name }}</td>
+        <td>{{ e.course.track.name }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="{% url 'parent_children' %}" class="btn btn-secondary">
+  ← Назад
+</a>
+{% endblock %}

@@ -1,0 +1,437 @@
+﻿{% extends "base_template.html" %}
+{% load static %}
+{% load l10n %}
+{% load edu_tags %}
+
+{% block title %}{{ course.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #f6f4fe; }
+.site-header { position: relative !important; background: #7748FF; padding: 1.4rem 0; }
+.site-header .logo, .site-header .nav a { color: #fff !important; }
+
+/* ── HERO ── */
+.course-hero {
+  background: linear-gradient(135deg, #7748FF 0%, #5c2ee0 100%);
+  padding: 3rem 0 5rem; position: relative; overflow: hidden;
+}
+.course-hero::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+  height: 60px;
+  background: #f6f4fe;
+  clip-path: ellipse(55% 100% at 50% 100%);
+}
+.hero-inner { max-width: 1100px; margin: 0 auto; padding: 0 2rem; display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: start; }
+.hero-breadcrumb { font-size: .82rem; color: rgba(255,255,255,.6); margin-bottom: .8rem; }
+.hero-breadcrumb a { color: rgba(255,255,255,.7); text-decoration: none; }
+.hero-breadcrumb a:hover { color: #fff; }
+.hero-title { font-size: 2.2rem; font-weight: 800; color: #fff; margin-bottom: .6rem; line-height: 1.2; }
+.hero-desc  { color: rgba(255,255,255,.8); font-size: .95rem; line-height: 1.65; max-width: 580px; margin-bottom: 1.4rem; }
+.hero-meta  { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.hero-meta-item { display: flex; align-items: center; gap: .4rem; color: rgba(255,255,255,.8); font-size: .88rem; }
+.hero-meta-item i { color: rgba(255,255,255,.6); }
+
+.hero-image {
+  width: 220px; height: 160px; border-radius: 16px; overflow: hidden;
+  background: rgba(255,255,255,.12); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.hero-image img { width: 100%; height: 100%; object-fit: cover; }
+.hero-image-placeholder { font-size: 4rem; color: rgba(255,255,255,.3); }
+
+/* ── ENROLL BTN ── */
+.enroll-box { margin-top: 1.4rem; }
+.btn-enroll {
+  background: #fff; color: #7748FF; border: none;
+  padding: .75rem 2.2rem; border-radius: 14px;
+  font-size: 1rem; font-weight: 700; font-family: 'Poppins', sans-serif;
+  cursor: pointer; text-decoration: none; display: inline-block;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15); transition: transform .2s, background .2s;
+}
+.btn-enroll:hover { transform: translateY(-2px); color: #5c2ee0; }
+.btn-unenroll {
+  background: transparent; color: rgba(255,255,255,.7);
+  border: 1px solid rgba(255,255,255,.4);
+  padding: .55rem 1.4rem; border-radius: 10px;
+  font-size: .85rem; font-weight: 600; font-family: 'Poppins', sans-serif;
+  cursor: pointer; margin-left: 1rem; transition: all .2s;
+}
+.btn-unenroll:hover { border-color: #fff; color: #fff; }
+.enrolled-badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.18); color: #fff;
+  padding: .45rem 1.1rem; border-radius: 10px; font-size: .88rem; font-weight: 600;
+}
+
+/* ── BODY ── */
+.page-body { max-width: 1100px; margin: 0 auto; padding: 2rem 2rem 4rem; display: grid; grid-template-columns: 1fr 320px; gap: 2rem; align-items: start; }
+
+/* ── PROGRESS CARD (enrolled) ── */
+.stat-card {
+  background: #fff; border-radius: 20px;
+  padding: 1.6rem 1.8rem;
+  box-shadow: 0 4px 24px rgba(119,72,255,.08);
+  margin-bottom: 1.2rem;
+}
+.stat-card-title { font-size: .8rem; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1rem; }
+.course-progress-bar { height: 10px; background: #ede9fe; border-radius: 5px; overflow: hidden; margin-bottom: .4rem; }
+.course-progress-fill { height: 100%; background: linear-gradient(90deg, #7748FF, #b08aff); border-radius: 5px; transition: width .6s; }
+.progress-label { font-size: .82rem; color: #888; }
+
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-top: 1rem; }
+.stat-item { background: #f8f6ff; border-radius: 12px; padding: .9rem 1rem; }
+.stat-item .val { font-size: 1.5rem; font-weight: 800; color: #1a1a2e; }
+.stat-item .lbl { font-size: .72rem; color: #999; font-weight: 500; }
+
+/* ── LESSONS LIST ── */
+.lessons-title { font-size: 1.2rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1.2rem; }
+
+.lesson-item {
+  background: #fff; border-radius: 16px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: .75rem;
+  display: grid; grid-template-columns: 48px 1fr auto;
+  align-items: center; gap: 1rem;
+  box-shadow: 0 2px 12px rgba(119,72,255,.06);
+  cursor: pointer; text-decoration: none;
+  transition: transform .18s, box-shadow .18s;
+  position: relative; overflow: hidden;
+}
+.lesson-item:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(119,72,255,.13); }
+.lesson-item.locked { cursor: default; opacity: .6; }
+.lesson-item.locked:hover { transform: none; box-shadow: 0 2px 12px rgba(119,72,255,.06); }
+.lesson-item.completed { border-left: 4px solid #22C55E; }
+
+.lesson-num {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.lesson-info .lesson-name { font-size: .97rem; font-weight: 700; color: #1a1a2e; margin-bottom: .2rem; }
+.lesson-info .lesson-meta { display: flex; gap: .8rem; font-size: .78rem; color: #aaa; }
+.lesson-type-badge {
+  font-size: .7rem; font-weight: 700; padding: .2rem .6rem;
+  border-radius: 6px; color: #fff;
+}
+
+.lesson-right { display: flex; flex-direction: column; align-items: flex-end; gap: .4rem; flex-shrink: 0; }
+.lesson-status-icon { font-size: 1.2rem; }
+.lesson-grade {
+  font-size: .75rem; font-weight: 700;
+  padding: .15rem .5rem; border-radius: 6px; color: #fff;
+}
+.lesson-mini-bar { width: 64px; height: 5px; background: #ede9fe; border-radius: 3px; overflow: hidden; }
+.lesson-mini-bar-fill { height: 100%; background: linear-gradient(90deg, #7748FF, #b08aff); border-radius: 3px; }
+
+/* ── SIDEBAR ── */
+.sidebar-card {
+  background: #fff; border-radius: 20px;
+  padding: 1.6rem 1.8rem;
+  box-shadow: 0 4px 24px rgba(119,72,255,.08);
+  position: sticky; top: 1.5rem;
+}
+.sidebar-title { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1.2rem; }
+.review-form textarea {
+  width: 100%; padding: .7rem .9rem; border: 2px solid #ede9fe;
+  border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: .88rem;
+  color: #333; resize: none; outline: none; transition: border-color .2s;
+  min-height: 72px;
+}
+.review-form textarea:focus { border-color: #7748FF; }
+.stars { display: flex; gap: .3rem; margin-bottom: .7rem; }
+.star { font-size: 1.4rem; cursor: pointer; color: #e0d9f5; transition: color .15s; }
+.star.active { color: #F59E0B; }
+.btn-review {
+  width: 100%; padding: .6rem; background: #7748FF; color: #fff;
+  border: none; border-radius: 10px; font-weight: 700; font-size: .9rem;
+  font-family: 'Poppins', sans-serif; cursor: pointer; margin-top: .7rem;
+  transition: background .2s;
+}
+.btn-review:hover { background: #5c2ee0; }
+
+.review-list { margin-top: 1.2rem; }
+.review-item { padding: .8rem 0; border-bottom: 1px solid #f0eeff; }
+.review-item:last-child { border-bottom: none; }
+.review-stars { color: #F59E0B; font-size: .8rem; margin-bottom: .2rem; }
+.review-text { font-size: .83rem; color: #555; line-height: 1.5; }
+.review-author { font-size: .75rem; color: #bbb; margin-top: .2rem; }
+
+/* delete modal */
+.del-overlay {
+  display: none; position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
+  align-items: center; justify-content: center;
+}
+.del-overlay.open { display: flex; }
+.del-modal {
+  background: #fff; border-radius: 20px; padding: 2.5rem;
+  width: 400px; max-width: 90vw; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  animation: modalIn .2s ease;
+}
+@keyframes modalIn { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.del-modal-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #fff0f0; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto .8rem; font-size: 1.5rem; color: #ef4444;
+}
+.del-modal h3 { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin-bottom: .3rem; }
+.del-modal p { font-size: .85rem; color: #888; margin-bottom: 1.5rem; }
+.del-modal-btns { display: flex; gap: .7rem; justify-content: center; }
+.del-btn-cancel {
+  padding: .6rem 1.5rem; border-radius: 10px; border: 2px solid #f0ecff;
+  background: #fff; color: #888; font-weight: 700; font-size: .88rem;
+  font-family: 'Poppins', sans-serif; cursor: pointer; transition: all .15s;
+}
+.del-btn-cancel:hover { border-color: #7748FF; color: #7748FF; }
+.del-btn-confirm {
+  padding: .6rem 1.5rem; border-radius: 10px; border: none;
+  background: #ef4444; color: #fff; font-weight: 700; font-size: .88rem;
+  font-family: 'Poppins', sans-serif; cursor: pointer; transition: all .15s;
+}
+.del-btn-confirm:hover { background: #dc2626; }
+
+@media (max-width: 860px) {
+  .page-body { grid-template-columns: 1fr; }
+  .hero-inner { grid-template-columns: 1fr; }
+  .hero-image { display: none; }
+  .sidebar-card { position: static; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── HERO ── #}
+<section class="course-hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-breadcrumb">
+        <a href="{% url 'all_courses' %}">Все курсы</a>
+        <span> / {{ course.category.name|default:"Курс" }}</span>
+      </div>
+
+      <h1 class="hero-title">{{ course.name }}</h1>
+      <p class="hero-desc">{{ course.description }}</p>
+
+      <div class="hero-meta">
+        <div class="hero-meta-item"><i class="bi bi-collection-play"></i> {{ total_lessons }} {{ total_lessons|pluralize_lessons }}</div>
+        <div class="hero-meta-item"><i class="bi bi-star-fill" style="color:#F59E0B"></i> {% localize off %}{{ course.average_rating }}{% endlocalize %}</div>
+        {% if course.category %}<div class="hero-meta-item"><i class="bi bi-tag"></i> {{ course.category.name }}</div>{% endif %}
+      </div>
+
+      <div class="enroll-box">
+        {% if user.role == 'student' %}
+          {% if is_enrolled %}
+            <span class="enrolled-badge"><i class="bi bi-check-circle-fill"></i> Вы записаны</span>
+            <form method="post" style="display:inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="unenroll">
+              <button type="submit" class="btn-unenroll">Отписаться</button>
+            </form>
+          {% else %}
+            <form method="post" style="display:inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="enroll">
+              <button type="submit" class="btn-enroll">Начать обучение</button>
+            </form>
+          {% endif %}
+        {% elif user.role == 'parent' %}
+          {% if child_enrolled %}
+            <span class="enrolled-badge"><i class="bi bi-check-circle-fill"></i> Ребёнок записан</span>
+          {% else %}
+            <form method="post" style="display:inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="enroll_child">
+              <button type="submit" class="btn-enroll"><i class="bi bi-person-plus-fill"></i> Записать ребёнка</button>
+            </form>
+          {% endif %}
+        {% elif user.role == 'mentor' and is_mentor_course %}
+          <span class="enrolled-badge"><i class="bi bi-pencil-square"></i> Ваш курс</span>
+          <a href="{% url 'course_edit' course.pk %}" class="btn-enroll" style="margin-left:1rem;font-size:.88rem;padding:.55rem 1.4rem;">
+            <i class="bi bi-pencil-fill"></i> Редактировать
+          </a>
+          <button type="button" class="btn-unenroll" style="border-color:rgba(255,255,255,.5);color:rgba(255,255,255,.8);"
+                  onclick="document.getElementById('delOverlay').classList.add('open')">
+            <i class="bi bi-trash-fill"></i> Удалить курс
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="hero-image">
+      {% if course.image %}
+        <img src="{{ course.image.url }}" alt="{{ course.name }}">
+      {% else %}
+        <div class="hero-image-placeholder"><i class="bi bi-book-fill"></i></div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{# ── BODY ── #}
+<div class="page-body">
+
+  {# ── LEFT: прогресс + уроки ── #}
+  <div>
+
+    {# Прогресс-карточка только для подписанных #}
+    {% if is_enrolled %}
+    <div class="stat-card">
+      <div class="stat-card-title">Ваш прогресс</div>
+      <div class="course-progress-bar">
+        <div class="course-progress-fill" style="width:{{ course_progress.completion_percent|default:0 }}%"></div>
+      </div>
+      <div class="progress-label">{{ course_progress.completion_percent|default:0 }}% завершено</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="val">{{ completed_lessons }}/{{ total_lessons }}</div>
+          <div class="lbl">Уроков пройдено</div>
+        </div>
+        <div class="stat-item">
+          <div class="val">{{ course_progress.result|default:"—" }}</div>
+          <div class="lbl">Статус</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Список уроков #}
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.2rem;">
+      <div class="lessons-title" style="margin-bottom:0;">Программа курса</div>
+      {% if user.role == 'admin' or user.role == 'mentor' and is_mentor_course %}
+        <a href="{% url 'lesson_create_editor' course.id %}"
+           style="background:#7748FF;color:#fff;padding:.45rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:600;text-decoration:none;transition:background .2s;">
+          <i class="bi bi-plus-lg"></i> Добавить урок
+        </a>
+      {% endif %}
+    </div>
+
+    {% for lesson in lessons %}
+      {% if is_enrolled %}
+        {% if lesson.progress and lesson.progress.status == "completed" %}
+          <a href="{% url 'lesson_player' lesson.id %}" class="lesson-item completed">
+        {% elif lesson.progress %}
+          <a href="{% url 'lesson_player' lesson.id %}" class="lesson-item">
+        {% else %}
+          <a href="{% url 'lesson_player' lesson.id %}" class="lesson-item">
+        {% endif %}
+      {% else %}
+        <div class="lesson-item locked">
+      {% endif %}
+
+        <div class="lesson-num" style="background: {{ lesson.color_hex }};">{{ forloop.counter }}</div>
+
+        <div class="lesson-info">
+          <div class="lesson-name">{{ lesson.title }}</div>
+          <div class="lesson-meta">
+            <span>{{ lesson.total_cards }} карточек</span>
+            <span class="lesson-type-badge" style="background: {{ lesson.color_hex }};">
+              {{ lesson.get_lesson_type_display }}
+            </span>
+          </div>
+          {% if is_enrolled and lesson.progress and lesson.progress.status == "in_progress" %}
+            <div class="lesson-mini-bar" style="margin-top:.4rem;">
+              <div class="lesson-mini-bar-fill" style="width:{{ lesson.progress.completion_percent }}%"></div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="lesson-right">
+          {% if user.role == 'admin' or user.role == 'mentor' and is_mentor_course %}
+            <a href="{% url 'lesson_editor' lesson.id %}" style="color:#7748FF;font-size:.85rem;" title="Редактировать"
+               onclick="event.stopPropagation();"><i class="bi bi-pencil-square"></i></a>
+          {% endif %}
+          {% if is_enrolled and lesson.progress %}
+            {% if lesson.progress.status == "completed" %}
+              <i class="bi bi-check-circle-fill lesson-status-icon" style="color:#22C55E"></i>
+              {% with g=lesson.progress.grade %}
+              <span class="lesson-grade" style="background:{{ g.1 }}">{{ g.0 }}</span>
+              {% endwith %}
+            {% elif lesson.progress.status == "in_progress" %}
+              <i class="bi bi-play-circle-fill lesson-status-icon" style="color:#7748FF"></i>
+            {% endif %}
+          {% elif not is_enrolled %}
+            <i class="bi bi-lock lesson-status-icon" style="color:#ccc"></i>
+          {% else %}
+            <i class="bi bi-circle lesson-status-icon" style="color:#ddd"></i>
+          {% endif %}
+        </div>
+
+      {% if is_enrolled %}</a>{% else %}</div>{% endif %}
+    {% empty %}
+      <p style="color:#aaa; font-size:.95rem;">Уроки ещё добавляются.</p>
+    {% endfor %}
+
+  </div>
+
+  {# ── RIGHT: sidebar ── #}
+  <div>
+    <div class="sidebar-card">
+      <div class="sidebar-title">Оценки и отзывы</div>
+
+      {# Форма отзыва только для подписанных #}
+      {% if is_enrolled %}
+      <form class="review-form" method="post" action="{% url 'course_review' course.id %}">
+        {% csrf_token %}
+        <div class="stars" id="stars">
+          {% for i in "12345" %}
+          <span class="star" data-val="{{ forloop.counter }}" onclick="setStar({{ forloop.counter }})">★</span>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="rating" id="rating-input" value="5">
+        <textarea name="comment" placeholder="Напишите отзыв..." rows="3"></textarea>
+        <button type="submit" class="btn-review">Оставить отзыв</button>
+      </form>
+      {% endif %}
+
+      <div class="review-list">
+        {% for review in course.reviews.all|slice:":5" %}
+        <div class="review-item">
+          <div class="review-stars">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
+          {% if review.comment %}<div class="review-text">{{ review.comment }}</div>{% endif %}
+          <div class="review-author">{{ review.student.user.get_full_name|default:"Аноним" }}</div>
+        </div>
+        {% empty %}
+          <p style="color:#ccc; font-size:.85rem; text-align:center; padding:.5rem 0;">Отзывов пока нет</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% if user.role == 'mentor' and is_mentor_course %}
+<!-- Delete modal -->
+<div class="del-overlay" id="delOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="del-modal" onclick="event.stopPropagation()">
+    <div class="del-modal-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+    <h3>Удалить курс?</h3>
+    <p>Вы действительно хотите удалить «{{ course.name }}»? Это действие нельзя отменить.</p>
+    <form method="post" action="{% url 'course_delete' course.pk %}">
+      {% csrf_token %}
+      <div class="del-modal-btns">
+        <button type="button" class="del-btn-cancel" onclick="document.getElementById('delOverlay').classList.remove('open')">Отмена</button>
+        <button type="submit" class="del-btn-confirm"><i class="bi bi-trash-fill"></i> Удалить</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStar = 5;
+function setStar(n) {
+  currentStar = n;
+  document.getElementById('rating-input').value = n;
+  document.querySelectorAll('.star').forEach((s, i) => {
+    s.classList.toggle('active', i < n);
+  });
+}
+// Инит на 5
+setStar(5);
+</script>
+{% endblock %}

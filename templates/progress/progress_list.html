@@ -1,0 +1,38 @@
+﻿{% extends "base.html" %}
+{% block title %}Прогресс{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+  <h2>Прогресс обучения</h2>
+  <a href="{% url 'progress_create' %}" class="btn btn-success">
+    + Добавить
+  </a>
+</div>
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Ученик</th>
+      <th>Курс</th>
+      <th>%</th>
+      <th>Результат</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in items %}
+      <tr>
+        <td>{{ p.student }}</td>
+        <td>{{ p.course }}</td>
+        <td>{{ p.completion_percent }}%</td>
+        <td>{{ p.result }}</td>
+        <td class="text-end">
+          <a href="{% url 'progress_edit' p.id %}" class="btn btn-sm btn-outline-secondary">
+            ✏️
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

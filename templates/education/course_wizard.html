@@ -1,0 +1,616 @@
+{% extends "base_template.html" %}
+{% load static %}
+{% block title %}Создание курса{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #7748FF; }
+.site-header { position: relative !important; }
+
+.wiz-wrap { max-width: 820px; margin: 2rem auto 5rem; padding: 0 1.5rem; }
+.bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bg-blob { position: absolute; background: #fff; border-radius: 50%; }
+.bg-blob-1 { width: 450px; height: 450px; top: 25%; left: -150px; opacity: .13; }
+.bg-blob-2 { width: 360px; height: 360px; top: 55%; right: -110px; opacity: .11; }
+/* Top bar */
+.wiz-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+}
+.wiz-topbar h1 { font-size: 1.4rem; font-weight: 800; color: #ffffff; margin: 0; font-family: Montserrat, sans-serif; }
+.wiz-actions { display: flex; gap: .6rem; }
+.btn-wiz {
+  padding: .55rem 1.6rem; border-radius: 10px; border: none; font-size: .9rem;
+  font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background .2s;
+}
+.btn-wiz-save { background: #4920bf; color: #fff; display: inline-flex; align-items: center; }
+.btn-wiz-save:hover { background: #5c2ee0; }
+.btn-wiz-cancel { background: #e5e5e5; color: #555; text-decoration: none; display: inline-flex; align-items: center; }
+.btn-wiz-cancel:hover { background: #d4d4d4; color: #555; }
+
+/* Course meta card */
+.wiz-meta {
+  background: #fff; border-radius: 16px; padding: 1.8rem 2rem; margin-bottom: 1.5rem;
+  box-shadow: 0 2px 12px rgba(40,0,120,.06); border-top: 4px solid #7748FF;
+}
+.wiz-section-label {
+  font-size: .78rem; color: #999; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; margin-bottom: .8rem;
+}
+.wiz-field { margin-bottom: 1rem; }
+.wiz-field:last-child { margin-bottom: 0; }
+.wiz-field label { display: block; font-size: .82rem; font-weight: 600; color: #888; margin-bottom: .2rem; }
+.wiz-input {
+  width: 100%; padding: .55rem .9rem; border: 1.5px solid #e8e5f0; border-radius: 8px;
+  font-size: .95rem; font-family: 'Poppins', sans-serif; transition: border-color .2s;
+  box-sizing: border-box; background: #fafafa;
+}
+.wiz-input:focus { border-color: #7748FF; outline: none; background: #fff; }
+textarea.wiz-input { resize: vertical; min-height: 70px; }
+select.wiz-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .9rem center; padding-right: 2.4rem; background-color: #fafafa; }
+.wiz-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+/* ── Lessons ── */
+.wiz-lessons-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.wiz-lessons-header h2 { font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0; font-family: Montserrat, sans-serif; }
+
+.lesson-block {
+  background: #fff; border-radius: 14px; margin-bottom: 1.2rem;
+  box-shadow: 0 2px 12px rgba(40,0,120,.05);
+  overflow: hidden;
+}
+.lesson-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.4rem; cursor: pointer; user-select: none; transition: background .15s;
+}
+.lesson-header:hover { background: #faf8ff; }
+.lesson-header-left { display: flex; align-items: center; gap: .8rem; }
+.lesson-num {
+  width: 30px; height: 30px; border-radius: 8px; background: #7748FF; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; font-weight: 700; flex-shrink: 0;
+}
+.lesson-title-text { font-size: 1rem; font-weight: 600; color: #1a1a2e; }
+.lesson-title-text.empty { color: #bbb; font-style: italic; }
+.lesson-header-right { display: flex; align-items: center; gap: .4rem; }
+.lesson-toggle {
+  background: none; border: none; cursor: pointer; color: #bbb; font-size: 1.1rem;
+  transition: transform .2s, color .15s; padding: .2rem;
+}
+.lesson-toggle:hover { color: #7748FF; }
+.lesson-toggle.open { transform: rotate(180deg); }
+
+.lesson-tool-btn {
+  width: 28px; height: 28px; border-radius: 7px; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: #f5f3ff; color: #7748FF; font-size: .85rem; transition: background .15s;
+}
+.lesson-tool-btn:hover { background: #ece7ff; }
+.lesson-tool-btn.danger { color: #ef4444; }
+.lesson-tool-btn.danger:hover { background: #fef2f2; }
+
+.lesson-body { padding: 0 1.4rem 1.2rem; display: none; }
+.lesson-body.open { display: block; }
+
+/* Cards inside lesson */
+.lc-cards { display: flex; flex-direction: column; gap: .8rem; margin-top: .6rem; }
+.lc-card {
+  background: #faf8ff; border-radius: 10px; padding: 1rem 1.2rem;
+  border-left: 3px solid #c4b0ff; position: relative;
+}
+.lc-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+.lc-type-badge {
+  font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+  padding: .15rem .6rem; border-radius: 5px;
+}
+.lc-type-badge.theory { background: #e0f2fe; color: #0369a1; }
+.lc-type-badge.test { background: #fef3c7; color: #92400e; }
+.lc-card-tools { display: flex; gap: .25rem; }
+.lc-card-tool {
+  width: 24px; height: 24px; border-radius: 6px; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; color: #bbb; font-size: .8rem; transition: all .15s;
+}
+.lc-card-tool:hover { background: #ece7ff; color: #7748FF; }
+.lc-card-tool.danger:hover { background: #fef2f2; color: #ef4444; }
+.lc-card-input {
+  width: 100%; padding: .45rem .7rem; border: 1.5px solid #e8e5f0; border-radius: 7px;
+  font-size: .88rem; font-family: 'Poppins', sans-serif; margin-bottom: .4rem;
+  box-sizing: border-box; background: #fff;
+}
+.lc-card-input:focus { border-color: #7748FF; outline: none; }
+textarea.lc-card-input { resize: vertical; min-height: 55px; }
+
+/* Choices in test card */
+.lc-choices { margin-top: .4rem; }
+.lc-choice-row { display: flex; align-items: center; gap: .4rem; margin-bottom: .35rem; }
+.lc-choice-dot {
+  width: 18px; height: 18px; border-radius: 50%; border: 2px solid #ccc;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .15s;
+}
+.lc-choice-dot.active { border-color: #22c55e; background: #22c55e; }
+.lc-choice-dot.active::after { content: '\2713'; color: #fff; font-size: .65rem; font-weight: 700; }
+.lc-choice-input {
+  flex: 1; padding: .35rem .6rem; border: 1.5px solid #e8e5f0; border-radius: 6px;
+  font-size: .85rem; font-family: 'Poppins', sans-serif; background: #fff;
+}
+.lc-choice-input:focus { border-color: #7748FF; outline: none; }
+.lc-choice-del { background: none; border: none; color: #ccc; cursor: pointer; font-size: .85rem; padding: .1rem; }
+.lc-choice-del:hover { color: #ef4444; }
+.lc-add-choice { background: none; border: none; color: #7748FF; font-size: .8rem; font-weight: 600; cursor: pointer; padding: .2rem 0; margin-top: .15rem; }
+.lc-add-choice:hover { text-decoration: underline; }
+
+.lc-type-badge.matching { background: #ede9fe; color: #6d28d9; }
+.lc-type-badge.open_answer { background: #d1fae5; color: #065f46; }
+
+/* Matching pairs */
+.lc-match-pair {
+  display: grid; grid-template-columns: 1fr auto 1fr auto; gap: .35rem;
+  align-items: center; margin-bottom: .35rem;
+}
+.lc-match-pair input {
+  padding: .35rem .6rem; border: 1.5px solid #e8e5f0; border-radius: 6px;
+  font-size: .85rem; font-family: 'Poppins', sans-serif; background: #fff;
+}
+.lc-match-pair input:focus { border-color: #7748FF; outline: none; }
+.lc-match-arrow { color: #bbb; font-size: .85rem; text-align: center; }
+
+/* Open answer */
+.lc-open-row { display: flex; gap: .35rem; align-items: center; margin-bottom: .35rem; }
+.lc-open-input {
+  flex: 1; padding: .35rem .6rem; border: 1.5px solid #e8e5f0; border-radius: 6px;
+  font-size: .85rem; font-family: 'Poppins', sans-serif; background: #fff;
+}
+.lc-open-input:focus { border-color: #7748FF; outline: none; }
+.lc-open-hint { font-size: .75rem; color: #999; margin-top: .15rem; }
+
+/* Add card / add lesson buttons */
+.lc-add-card-row { display: flex; gap: .5rem; margin-top: .8rem; }
+.lc-add-card-btn {
+  padding: .4rem 1rem; border-radius: 8px; border: 1.5px dashed #c4b0ff;
+  background: #fff; font-size: .82rem; font-weight: 600; cursor: pointer;
+  font-family: 'Poppins', sans-serif; color: #7748FF; transition: all .15s;
+}
+.lc-add-card-btn:hover { border-color: #7748FF; background: #f5f0ff; }
+
+.add-lesson-btn {
+  width: 100%; padding: .8rem; border-radius: 12px; border: 2px dashed #c4b0ff;
+  background: #fff; font-size: .95rem; font-weight: 600; cursor: pointer;
+  font-family: 'Poppins', sans-serif; color: #7748FF; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+}
+.add-lesson-btn:hover { border-color: #7748FF; background: #f5f0ff; }
+
+/* Color picker */
+.color-row { display: flex; gap: .4rem; flex-wrap: wrap; }
+.color-dot {
+  width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 3px solid transparent;
+  transition: border-color .15s, transform .15s;
+}
+.color-dot:hover { transform: scale(1.15); }
+.color-dot.active { border-color: #1a1a2e; }
+
+/* Toast */
+.wiz-toast {
+  position: fixed; bottom: 2rem; right: 2rem; padding: .7rem 1.5rem; border-radius: 12px;
+  font-weight: 600; font-size: .9rem; box-shadow: 0 4px 20px rgba(0,0,0,.15); z-index: 2000;
+  transform: translateY(80px); opacity: 0; transition: transform .3s, opacity .3s;
+}
+.wiz-toast.show { transform: translateY(0); opacity: 1; }
+.wiz-toast.success { background: #22c55e; color: #fff; }
+.wiz-toast.error { background: #ef4444; color: #fff; }
+
+@media (max-width: 600px) {
+  .wiz-row { grid-template-columns: 1fr; }
+  .wiz-meta { padding: 1.2rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="bg-blob-wrap">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+</div>
+
+<div class="wiz-wrap">
+  <div class="wiz-topbar">
+    <h1><i class="bi bi-plus-circle"></i> Создание курса</h1>
+    <div class="wiz-actions">
+      <a href="{% url 'mentor_dashboard' %}" class="btn-wiz btn-wiz-cancel">Отмена</a>
+      <button class="btn-wiz btn-wiz-save" onclick="saveCourse()">Создать курс</button>
+    </div>
+  </div>
+
+  {# ── Course metadata ── #}
+  <div class="wiz-meta">
+    <div class="wiz-section-label">Информация о курсе</div>
+    <div class="wiz-field">
+      <label>Название курса</label>
+      <input type="text" class="wiz-input" id="courseName" placeholder="Например: Основы Python">
+    </div>
+    <div class="wiz-field">
+      <label>Описание</label>
+      <textarea class="wiz-input" id="courseDesc" placeholder="Опишите курс..."></textarea>
+    </div>
+    <div class="wiz-row">
+      <div class="wiz-field">
+        <label>Трек</label>
+        <select class="wiz-input" id="courseTrack">
+          {% for t in tracks %}
+          <option value="{{ t.id }}">{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="wiz-field">
+        <label>Категория</label>
+        <select class="wiz-input" id="courseCategory">
+          <option value="">— без категории —</option>
+          {% for c in categories %}
+          <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="wiz-field">
+      <label>Формат</label>
+      <input type="text" class="wiz-input" id="courseFormat" value="онлайн" placeholder="онлайн / офлайн / гибрид">
+    </div>
+  </div>
+
+  {# ── Lessons ── #}
+  <div class="wiz-lessons-header">
+    <h2><i class="bi bi-list-ol"></i> Уроки</h2>
+  </div>
+
+  <div id="lessonsList"></div>
+
+  <button class="add-lesson-btn" onclick="addLesson()">
+    <i class="bi bi-plus-lg"></i> Добавить урок
+  </button>
+</div>
+
+<div class="wiz-toast" id="wizToast"></div>
+
+<script>
+var LESSONS = [];
+var COLORS = [
+  {% for code, hex in colors %}
+  ["{{ code }}", "{{ hex }}"]{% if not forloop.last %},{% endif %}
+  {% endfor %}
+];
+
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function addLesson() {
+  LESSONS.push({
+    title: '',
+    description: '',
+    color: 'violet',
+    cards: [],
+    open: true,
+  });
+  renderLessons();
+  // Auto-focus the new lesson title
+  var inputs = document.querySelectorAll('.lesson-title-input');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+function removeLesson(idx) {
+  LESSONS.splice(idx, 1);
+  renderLessons();
+}
+
+function moveLesson(idx, dir) {
+  var t = idx + dir;
+  if (t < 0 || t >= LESSONS.length) return;
+  var tmp = LESSONS[idx]; LESSONS[idx] = LESSONS[t]; LESSONS[t] = tmp;
+  renderLessons();
+}
+
+function toggleLesson(idx) {
+  LESSONS[idx].open = !LESSONS[idx].open;
+  renderLessons();
+}
+
+function addCard(lessonIdx, type) {
+  var card = { type: type, title: '', content: '', choices: [], pairs: [], accepted: [] };
+  if (type === 'test') card.choices = [{ text: '', is_correct: false }, { text: '', is_correct: false }];
+  if (type === 'matching') card.pairs = [{ left: '', right: '' }, { left: '', right: '' }];
+  if (type === 'open_answer') card.accepted = [''];
+  LESSONS[lessonIdx].cards.push(card);
+  LESSONS[lessonIdx].open = true;
+  renderLessons();
+}
+
+function removeCard(li, ci) {
+  LESSONS[li].cards.splice(ci, 1);
+  renderLessons();
+}
+
+function moveCard(li, ci, dir) {
+  var t = ci + dir;
+  var cards = LESSONS[li].cards;
+  if (t < 0 || t >= cards.length) return;
+  var tmp = cards[ci]; cards[ci] = cards[t]; cards[t] = tmp;
+  renderLessons();
+}
+
+function addChoice(li, ci) {
+  LESSONS[li].cards[ci].choices.push({ text: '', is_correct: false });
+  renderLessons();
+}
+
+function removeChoice(li, ci, chi) {
+  LESSONS[li].cards[ci].choices.splice(chi, 1);
+  renderLessons();
+}
+
+function toggleCorrect(li, ci, chi) {
+  LESSONS[li].cards[ci].choices[chi].is_correct = !LESSONS[li].cards[ci].choices[chi].is_correct;
+  renderLessons();
+}
+
+function addPair(li, ci) {
+  if (!LESSONS[li].cards[ci].pairs) LESSONS[li].cards[ci].pairs = [];
+  LESSONS[li].cards[ci].pairs.push({ left: '', right: '' });
+  renderLessons();
+}
+
+function removePair(li, ci, pi) {
+  LESSONS[li].cards[ci].pairs.splice(pi, 1);
+  renderLessons();
+}
+
+function addAccepted(li, ci) {
+  if (!LESSONS[li].cards[ci].accepted) LESSONS[li].cards[ci].accepted = [];
+  LESSONS[li].cards[ci].accepted.push('');
+  renderLessons();
+}
+
+function removeAccepted(li, ci, ai) {
+  LESSONS[li].cards[ci].accepted.splice(ai, 1);
+  renderLessons();
+}
+
+function pickLessonColor(li, code, el) {
+  LESSONS[li].color = code;
+  el.closest('.color-row').querySelectorAll('.color-dot').forEach(function(d) { d.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function syncFromDOM() {
+  document.querySelectorAll('.lesson-block').forEach(function(block, li) {
+    if (!LESSONS[li]) return;
+    var titleInput = block.querySelector('.lesson-title-input');
+    if (titleInput) LESSONS[li].title = titleInput.value;
+    var descInput = block.querySelector('.lesson-desc-input');
+    if (descInput) LESSONS[li].description = descInput.value;
+    block.querySelectorAll('.lc-card').forEach(function(cardEl, ci) {
+      if (!LESSONS[li].cards[ci]) return;
+      var card = LESSONS[li].cards[ci];
+      var inputs = cardEl.querySelectorAll('.lc-card-input');
+      if (inputs[0]) card.title = inputs[0].value;
+      if (inputs[1]) card.content = inputs[1].value;
+      // test choices
+      cardEl.querySelectorAll('.lc-choice-input').forEach(function(inp, chi) {
+        if (card.choices && card.choices[chi]) card.choices[chi].text = inp.value;
+      });
+      // matching pairs
+      cardEl.querySelectorAll('.lc-match-pair').forEach(function(row, pi) {
+        var ins = row.querySelectorAll('input');
+        if (card.pairs && card.pairs[pi]) {
+          if (ins[0]) card.pairs[pi].left = ins[0].value;
+          if (ins[1]) card.pairs[pi].right = ins[1].value;
+        }
+      });
+      // open answer
+      cardEl.querySelectorAll('.lc-open-input').forEach(function(inp, ai) {
+        if (card.accepted) card.accepted[ai] = inp.value;
+      });
+    });
+  });
+}
+
+function renderLessons() {
+  // Sync current values before re-rendering
+  syncFromDOM();
+
+  var container = document.getElementById('lessonsList');
+  container.innerHTML = '';
+
+  LESSONS.forEach(function(lesson, li) {
+    var titleDisplay = lesson.title || 'Новый урок';
+    var isOpen = lesson.open;
+
+    var html = '<div class="lesson-block" data-li="' + li + '">';
+    html += '<div class="lesson-header" onclick="toggleLesson(' + li + ')">';
+    html += '<div class="lesson-header-left">';
+    html += '<div class="lesson-num">' + (li + 1) + '</div>';
+    html += '<span class="lesson-title-text' + (lesson.title ? '' : ' empty') + '">' + esc(titleDisplay) + '</span>';
+    html += '</div>';
+    html += '<div class="lesson-header-right">';
+    if (li > 0) html += '<button class="lesson-tool-btn" onclick="event.stopPropagation();moveLesson(' + li + ',-1)" title="Вверх"><i class="bi bi-arrow-up"></i></button>';
+    if (li < LESSONS.length - 1) html += '<button class="lesson-tool-btn" onclick="event.stopPropagation();moveLesson(' + li + ',1)" title="Вниз"><i class="bi bi-arrow-down"></i></button>';
+    html += '<button class="lesson-tool-btn danger" onclick="event.stopPropagation();removeLesson(' + li + ')" title="Удалить"><i class="bi bi-trash3"></i></button>';
+    html += '<button class="lesson-toggle' + (isOpen ? ' open' : '') + '" onclick="event.stopPropagation();toggleLesson(' + li + ')"><i class="bi bi-chevron-down"></i></button>';
+    html += '</div></div>';
+
+    html += '<div class="lesson-body' + (isOpen ? ' open' : '') + '">';
+
+    // Lesson meta
+    html += '<div class="wiz-field"><label>Название урока</label>';
+    html += '<input class="lc-card-input lesson-title-input" value="' + esc(lesson.title) + '" placeholder="Введите название урока"></div>';
+    html += '<div class="wiz-field"><label>Описание</label>';
+    html += '<input class="lc-card-input lesson-desc-input" value="' + esc(lesson.description) + '" placeholder="Краткое описание (необязательно)"></div>';
+
+    // Color
+    html += '<div class="wiz-field"><label>Цвет</label><div class="color-row">';
+    COLORS.forEach(function(c) {
+      html += '<div class="color-dot' + (lesson.color === c[0] ? ' active' : '') + '" style="background:' + c[1] + '" onclick="pickLessonColor(' + li + ',\'' + c[0] + '\',this)"></div>';
+    });
+    html += '</div></div>';
+
+    // Cards
+    var TYPE_LABELS = { theory: 'Теория', test: 'Тест', matching: 'Соотнесение', open_answer: 'Развёрнутый ответ' };
+    html += '<div class="lc-cards">';
+    lesson.cards.forEach(function(card, ci) {
+      var placeholder = (card.type === 'test' || card.type === 'matching') ? 'Текст вопроса' : card.type === 'open_answer' ? 'Текст вопроса / задания' : 'Содержание';
+      html += '<div class="lc-card" data-ci="' + ci + '">';
+      html += '<div class="lc-card-header">';
+      html += '<span class="lc-type-badge ' + card.type + '">' + (TYPE_LABELS[card.type] || card.type) + '</span>';
+      html += '<div class="lc-card-tools">';
+      if (ci > 0) html += '<button class="lc-card-tool" onclick="moveCard(' + li + ',' + ci + ',-1)"><i class="bi bi-arrow-up"></i></button>';
+      if (ci < lesson.cards.length - 1) html += '<button class="lc-card-tool" onclick="moveCard(' + li + ',' + ci + ',1)"><i class="bi bi-arrow-down"></i></button>';
+      html += '<button class="lc-card-tool danger" onclick="removeCard(' + li + ',' + ci + ')"><i class="bi bi-trash3"></i></button>';
+      html += '</div></div>';
+
+      html += '<input class="lc-card-input" placeholder="Заголовок блока" value="' + esc(card.title) + '">';
+      html += '<textarea class="lc-card-input" placeholder="' + placeholder + '">' + esc(card.content) + '</textarea>';
+
+      if (card.type === 'test') {
+        html += '<div class="lc-choices">';
+        (card.choices || []).forEach(function(ch, chi) {
+          html += '<div class="lc-choice-row">';
+          html += '<div class="lc-choice-dot' + (ch.is_correct ? ' active' : '') + '" onclick="toggleCorrect(' + li + ',' + ci + ',' + chi + ')"></div>';
+          html += '<input class="lc-choice-input" value="' + esc(ch.text) + '" placeholder="Вариант ответа">';
+          html += '<button class="lc-choice-del" onclick="removeChoice(' + li + ',' + ci + ',' + chi + ')"><i class="bi bi-x"></i></button>';
+          html += '</div>';
+        });
+        html += '<button class="lc-add-choice" onclick="addChoice(' + li + ',' + ci + ')"><i class="bi bi-plus"></i> Добавить вариант</button>';
+        html += '</div>';
+      }
+
+      if (card.type === 'matching') {
+        html += '<div style="margin-top:.4rem;">';
+        (card.pairs || []).forEach(function(p, pi) {
+          html += '<div class="lc-match-pair">';
+          html += '<input value="' + esc(p.left) + '" placeholder="Левый элемент">';
+          html += '<span class="lc-match-arrow"><i class="bi bi-arrow-left-right"></i></span>';
+          html += '<input value="' + esc(p.right) + '" placeholder="Правый элемент">';
+          html += '<button class="lc-choice-del" onclick="removePair(' + li + ',' + ci + ',' + pi + ')"><i class="bi bi-x"></i></button>';
+          html += '</div>';
+        });
+        html += '<button class="lc-add-choice" onclick="addPair(' + li + ',' + ci + ')"><i class="bi bi-plus"></i> Добавить пару</button>';
+        html += '</div>';
+      }
+
+      if (card.type === 'open_answer') {
+        html += '<div style="margin-top:.4rem;">';
+        html += '<div class="lc-open-hint">Примеры правильных ответов (без учёта регистра, допускаются мелкие опечатки):</div>';
+        (card.accepted || []).forEach(function(a, ai) {
+          html += '<div class="lc-open-row">';
+          html += '<input class="lc-open-input" value="' + esc(a) + '" placeholder="Пример ответа">';
+          html += '<button class="lc-choice-del" onclick="removeAccepted(' + li + ',' + ci + ',' + ai + ')"><i class="bi bi-x"></i></button>';
+          html += '</div>';
+        });
+        html += '<button class="lc-add-choice" onclick="addAccepted(' + li + ',' + ci + ')"><i class="bi bi-plus"></i> Добавить вариант ответа</button>';
+        html += '</div>';
+      }
+
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // Add card buttons
+    html += '<div class="lc-add-card-row">';
+    html += '<button class="lc-add-card-btn" onclick="addCard(' + li + ',\'theory\')"><i class="bi bi-file-text"></i> Теория</button>';
+    html += '<button class="lc-add-card-btn" onclick="addCard(' + li + ',\'test\')"><i class="bi bi-question-circle"></i> Тест</button>';
+    html += '<button class="lc-add-card-btn" onclick="addCard(' + li + ',\'matching\')"><i class="bi bi-arrows"></i> Соотнесение</button>';
+    html += '<button class="lc-add-card-btn" onclick="addCard(' + li + ',\'open_answer\')"><i class="bi bi-pencil-square"></i> Развёрнутый</button>';
+    html += '</div>';
+
+    html += '</div></div>';
+    container.innerHTML += html;
+  });
+}
+
+function saveCourse() {
+  syncFromDOM();
+
+  var name = document.getElementById('courseName').value.trim();
+  if (!name) {
+    showToast('Введите название курса', 'error');
+    document.getElementById('courseName').focus();
+    return;
+  }
+
+  var payload = {
+    name: name,
+    description: document.getElementById('courseDesc').value.trim(),
+    track_id: parseInt(document.getElementById('courseTrack').value) || null,
+    category_id: parseInt(document.getElementById('courseCategory').value) || null,
+    format: document.getElementById('courseFormat').value.trim() || 'онлайн',
+    duration_hours: LESSONS.length,
+    lessons: LESSONS.map(function(l) {
+      return {
+        title: l.title || 'Новый урок',
+        description: l.description || '',
+        color: l.color || 'violet',
+        cards: l.cards.map(function(c) {
+          var out = { type: c.type, title: c.title || '', content: c.content || '' };
+          if (c.type === 'test') {
+            out.choices = (c.choices || []).map(function(ch) {
+              return { text: ch.text || '', is_correct: ch.is_correct || false };
+            });
+          } else if (c.type === 'matching') {
+            out.pairs = (c.pairs || []).map(function(p) {
+              return { left: p.left || '', right: p.right || '' };
+            });
+          } else if (c.type === 'open_answer') {
+            out.accepted = (c.accepted || []).filter(function(a) { return a && a.trim(); });
+          }
+          return out;
+        })
+      };
+    })
+  };
+
+  fetch('/education/courses/create/wizard/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken'),
+    },
+    body: JSON.stringify(payload),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.ok) {
+      showToast('Курс создан!', 'success');
+      setTimeout(function() { window.location.href = data.redirect; }, 800);
+    } else {
+      showToast('Ошибка: ' + (data.error || 'неизвестная'), 'error');
+    }
+  })
+  .catch(function() { showToast('Ошибка сети', 'error'); });
+}
+
+function showToast(msg, type) {
+  var t = document.getElementById('wizToast');
+  t.textContent = msg;
+  t.className = 'wiz-toast ' + (type || 'success');
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+function getCookie(name) {
+  var val = null;
+  document.cookie.split(';').forEach(function(c) {
+    c = c.trim();
+    if (c.startsWith(name + '=')) val = decodeURIComponent(c.substring(name.length + 1));
+  });
+  return val;
+}
+
+// Start with one empty lesson
+addLesson();
+</script>
+{% endblock %}

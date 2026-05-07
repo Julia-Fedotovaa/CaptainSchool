@@ -1,0 +1,114 @@
+{% extends "base_template.html" %}
+{% block title %}Редактирование профиля ребёнка{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: #7748FF; }
+  .bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .bg-blob { position: absolute; background: #fff; border-radius: 50%; }
+  .bg-blob-1 { width: 450px; height: 450px; top: 25%; left: -150px; opacity: .13; }
+  .bg-blob-2 { width: 360px; height: 360px; top: 55%; right: -110px; opacity: .11; }
+
+  .site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
+  .pe-wrap { max-width: 620px; margin: 0 auto; padding: 0 2rem 5rem; position: relative; z-index: 1; }
+  .pe-back { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; display: inline-block; margin-bottom: 1.2rem; }
+  .pe-back:hover { color: #fff; }
+  .pe-card {
+    background: #fff; border-radius: 22px; padding: 2.5rem 2.5rem 2rem;
+    box-shadow: 0 8px 40px rgba(40,0,120,0.10);
+  }
+  .pe-title { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; margin-bottom: .3rem; }
+  .pe-subtitle { font-size: .88rem; color: #999; margin-bottom: 1.5rem; }
+  .pe-section { font-size: 0.85rem; color: #999; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 0.6rem; margin-top: 1.5rem; }
+  .pe-section:first-of-type { margin-top: 0; }
+  .pe-field { margin-bottom: 1rem; }
+  .pe-field label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 0.25rem; }
+  .profile-input {
+    width: 100%; padding: 0.65rem 1rem; border: 1.5px solid #e0e0e0; border-radius: 10px;
+    font-size: 0.95rem; font-family: 'Poppins', sans-serif; transition: border-color .2s;
+    background: #fafafa; box-sizing: border-box;
+  }
+  .profile-input:focus { border-color: #7748FF; outline: none; background: #fff; }
+  textarea.profile-input { resize: vertical; }
+  .pe-errors { color: #ef4444; font-size: 0.82rem; margin-top: 0.2rem; }
+  .pe-submit {
+    margin-top: 1.8rem; background: #7748FF; color: #fff; border: none; padding: 0.7rem 2.5rem;
+    border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;
+    transition: background .2s;
+  }
+  .pe-submit:hover { background: #5c2ee0; }
+
+  .child-ava-row {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem; padding-bottom: 1.2rem;
+    border-bottom: 1px solid #f0ecff;
+  }
+  .child-ava-circle {
+    width: 64px; height: 64px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .child-ava-circle img { width: 100%; height: 100%; object-fit: cover; }
+  .child-ava-circle i { font-size: 2rem; color: rgba(255,255,255,.4); }
+  .child-ava-name { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; }
+  .child-ava-role { font-size: .78rem; color: #aaa; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-blob-wrap">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+</div>
+<div class="pe-wrap">
+  <a href="{% url 'parent_dashboard' %}" class="pe-back"><i class="bi bi-arrow-left"></i> Назад</a>
+  <div class="pe-card">
+    <div class="pe-title">Профиль ребёнка</div>
+    <div class="pe-subtitle">Редактирование данных</div>
+
+    <div class="child-ava-row">
+      <div class="child-ava-circle">
+        {% if student.user.avatar %}
+          <img src="{{ student.user.avatar.url }}" alt="">
+        {% else %}
+          <i class="bi bi-person-fill"></i>
+        {% endif %}
+      </div>
+      <div>
+        <div class="child-ava-name">{{ student.user.get_full_name }}</div>
+        <div class="child-ava-role">Ученик</div>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="pe-section">Основные данные</div>
+      {% for field in user_form %}
+        <div class="pe-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="pe-errors">{{ field.errors.0 }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div class="pe-section">Дополнительно</div>
+      {% for field in profile_form %}
+        <div class="pe-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="pe-errors">{{ field.errors.0 }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <button type="submit" class="pe-submit">Сохранить</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

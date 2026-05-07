@@ -1,0 +1,299 @@
+{% extends "base_template.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: #7748FF; }
+  .site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
+.bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bg-blob { position: absolute; background: #fff; border-radius: 50%; }
+.bg-blob-1 { width: 450px; height: 450px; top: 25%; left: -150px; opacity: .13; }
+.bg-blob-2 { width: 360px; height: 360px; top: 55%; right: -110px; opacity: .11; }
+
+  .sf-wrap { max-width: 640px; margin: 0 auto; padding: 0 2rem 5rem; position: relative; z-index: 1; }
+  .sf-back { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: .35rem; margin-bottom: 1.2rem; }
+  .sf-back:hover { color: #fff; }
+
+  .sf-card {
+    background: #fff; border-radius: 22px; padding: 2.5rem 2.5rem 2rem;
+    box-shadow: 0 8px 40px rgba(40,0,120,0.10);
+  }
+  .sf-title { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; margin-bottom: .3rem; }
+  .sf-subtitle { font-size: .88rem; color: #999; margin-bottom: 1.5rem; }
+
+  .sf-section {
+    font-size: 0.85rem; color: #999; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 0.6rem; margin-top: 1.5rem;
+  }
+  .sf-section:first-of-type { margin-top: 0; }
+
+  .sf-field { margin-bottom: 1rem; }
+  .sf-field label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 0.25rem; }
+
+  .sf-input {
+    width: 100%; padding: 0.65rem 1rem; border: 1.5px solid #e0e0e0; border-radius: 10px;
+    font-size: 0.95rem; font-family: 'Poppins', sans-serif; transition: border-color .2s;
+    background: #fafafa; box-sizing: border-box;
+  }
+  .sf-input:focus { border-color: #7748FF; outline: none; background: #fff; }
+  textarea.sf-input { resize: vertical; min-height: 80px; }
+  select.sf-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+
+  .sf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  .sf-errors { color: #ef4444; font-size: 0.82rem; margin-top: 0.2rem; }
+
+  .sf-submit {
+    margin-top: 1.8rem; background: #7748FF; color: #fff; border: none;
+    padding: 0.75rem 2.5rem; border-radius: 12px; font-size: 1rem; font-weight: 600;
+    cursor: pointer; font-family: 'Poppins', sans-serif; transition: background .2s;
+    display: inline-flex; align-items: center; gap: .5rem;
+  }
+  .sf-submit:hover { background: #5c2ee0; }
+
+  /* Student search widget */
+  .student-search-wrap { position: relative; }
+  .student-search {
+    width: 100%; padding: 0.65rem 1rem 0.65rem 2.4rem; border: 1.5px solid #e0e0e0; border-radius: 10px;
+    font-size: 0.95rem; font-family: 'Poppins', sans-serif; background: #fafafa; box-sizing: border-box;
+    transition: border-color .2s;
+  }
+  .student-search:focus { border-color: #7748FF; outline: none; background: #fff; }
+  .student-search-icon {
+    position: absolute; left: .85rem; top: 50%; transform: translateY(-50%);
+    color: #bbb; font-size: .95rem; pointer-events: none;
+  }
+  .student-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+    background: #fff; border: 1.5px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;
+    max-height: 200px; overflow-y: auto; display: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,.08);
+  }
+  .student-dropdown.show { display: block; }
+  .student-dropdown-item {
+    padding: .55rem 1rem; cursor: pointer; font-size: .9rem; display: flex; justify-content: space-between;
+    align-items: center; transition: background .1s;
+  }
+  .student-dropdown-item:hover { background: #f5f0ff; }
+  .student-dropdown-item .sd-name { font-weight: 600; color: #1a1a2e; }
+  .student-dropdown-item .sd-email { font-size: .8rem; color: #999; }
+  .student-dropdown-empty { padding: .6rem 1rem; color: #999; font-size: .88rem; }
+
+  .assigned-list { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
+  .assigned-chip {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: #f0e8ff; color: #5c2ee0; padding: .3rem .8rem .3rem 1rem;
+    border-radius: 20px; font-size: .85rem; font-weight: 600;
+  }
+  .assigned-chip-remove {
+    background: none; border: none; color: #b08aff; cursor: pointer; font-size: 1rem;
+    padding: 0; line-height: 1; transition: color .15s;
+  }
+  .assigned-chip-remove:hover { color: #ef4444; }
+
+  @media (max-width: 500px) {
+    .sf-row { grid-template-columns: 1fr; }
+    .sf-card { padding: 1.5rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="bg-blob-wrap">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+</div>
+<div class="sf-wrap">
+  <a href="{% url 'mentor_dashboard' %}" class="sf-back"><i class="bi bi-arrow-left"></i> Назад к панели</a>
+
+  <div class="sf-card">
+    <div class="sf-title">{{ form_title }}</div>
+    <div class="sf-subtitle">Заполните информацию о вебинаре</div>
+
+    <form method="post" id="scheduleForm">
+      {% csrf_token %}
+
+      {# ── Курс ── #}
+      <div class="sf-section">Курс</div>
+      <div class="sf-field">
+        <label for="{{ form.course.id_for_label }}">{{ form.course.label }}</label>
+        {{ form.course }}
+        {% if form.course.errors %}
+          <div class="sf-errors">{{ form.course.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      {# ── Дата и время ── #}
+      <div class="sf-section">Дата и время</div>
+      <div class="sf-field">
+        <label for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
+        {{ form.date }}
+        {% if form.date.errors %}
+          <div class="sf-errors">{{ form.date.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="sf-row">
+        <div class="sf-field">
+          <label for="{{ form.start_time.id_for_label }}">{{ form.start_time.label }}</label>
+          {{ form.start_time }}
+          {% if form.start_time.errors %}
+            <div class="sf-errors">{{ form.start_time.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="sf-field">
+          <label for="{{ form.end_time.id_for_label }}">{{ form.end_time.label }}</label>
+          {{ form.end_time }}
+          {% if form.end_time.errors %}
+            <div class="sf-errors">{{ form.end_time.errors.0 }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Формат ── #}
+      <div class="sf-section">Формат и ссылка</div>
+      <div class="sf-field">
+        <label for="{{ form.lesson_format.id_for_label }}">{{ form.lesson_format.label }}</label>
+        {{ form.lesson_format }}
+        {% if form.lesson_format.errors %}
+          <div class="sf-errors">{{ form.lesson_format.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="sf-field">
+        <label for="{{ form.location.id_for_label }}">{{ form.location.label }}</label>
+        {{ form.location }}
+        {% if form.location.errors %}
+          <div class="sf-errors">{{ form.location.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      {# ── Описание ── #}
+      <div class="sf-section">Описание</div>
+      <div class="sf-field">
+        <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+        {{ form.description }}
+        {% if form.description.errors %}
+          <div class="sf-errors">{{ form.description.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      {# ── Ученики ── #}
+      <div class="sf-section">Ученики</div>
+      <div class="sf-field">
+        <label>Найти и добавить учеников</label>
+        <div class="student-search-wrap">
+          <i class="bi bi-search student-search-icon"></i>
+          <input type="text" class="student-search" id="studentSearch"
+                 placeholder="Введите имя или email ученика..." autocomplete="off">
+          <div class="student-dropdown" id="studentDropdown"></div>
+        </div>
+        <div class="assigned-list" id="assignedList"></div>
+        <input type="hidden" name="student_ids" id="studentIds">
+      </div>
+
+      <button type="submit" class="sf-submit">
+        <i class="bi bi-calendar-plus"></i> {{ submit_label|default:"Создать вебинар" }}
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Apply styling classes to all form inputs
+  document.querySelectorAll(".sf-field input:not(.student-search):not([type=hidden]), .sf-field select, .sf-field textarea").forEach(function(el) {
+    el.classList.add("sf-input");
+  });
+  // Set date input type
+  var dateInput = document.getElementById("{{ form.date.id_for_label }}");
+  if (dateInput) dateInput.type = "date";
+  // Set time input types
+  var startInput = document.getElementById("{{ form.start_time.id_for_label }}");
+  if (startInput) startInput.type = "time";
+  var endInput = document.getElementById("{{ form.end_time.id_for_label }}");
+  if (endInput) endInput.type = "time";
+
+  // ── Student search & assignment ──
+  var assigned = {{ assigned_students|safe }};
+  var searchInput = document.getElementById("studentSearch");
+  var dropdown = document.getElementById("studentDropdown");
+  var assignedList = document.getElementById("assignedList");
+  var hiddenInput = document.getElementById("studentIds");
+  var searchTimer = null;
+
+  function syncHidden() {
+    hiddenInput.value = assigned.map(function(s) { return s.id; }).join(",");
+  }
+
+  function renderAssigned() {
+    assignedList.innerHTML = "";
+    assigned.forEach(function(s) {
+      var chip = document.createElement("span");
+      chip.className = "assigned-chip";
+      chip.innerHTML = s.name + ' <button type="button" class="assigned-chip-remove" data-id="' + s.id + '">&times;</button>';
+      assignedList.appendChild(chip);
+    });
+    syncHidden();
+  }
+
+  function addStudent(student) {
+    if (assigned.some(function(s) { return s.id === student.id; })) return;
+    assigned.push(student);
+    renderAssigned();
+    searchInput.value = "";
+    dropdown.classList.remove("show");
+  }
+
+  assignedList.addEventListener("click", function(e) {
+    var btn = e.target.closest(".assigned-chip-remove");
+    if (!btn) return;
+    var id = parseInt(btn.dataset.id);
+    assigned = assigned.filter(function(s) { return s.id !== id; });
+    renderAssigned();
+  });
+
+  searchInput.addEventListener("input", function() {
+    clearTimeout(searchTimer);
+    var q = searchInput.value.trim();
+    if (q.length < 2) {
+      dropdown.classList.remove("show");
+      return;
+    }
+    searchTimer = setTimeout(function() {
+      fetch("/education/api/students/search/?q=" + encodeURIComponent(q))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          dropdown.innerHTML = "";
+          var results = data.results || [];
+          // Filter out already assigned
+          results = results.filter(function(r) {
+            return !assigned.some(function(s) { return s.id === r.id; });
+          });
+          if (results.length === 0) {
+            dropdown.innerHTML = '<div class="student-dropdown-empty">Не найдено</div>';
+          } else {
+            results.forEach(function(r) {
+              var item = document.createElement("div");
+              item.className = "student-dropdown-item";
+              item.innerHTML = '<span class="sd-name">' + r.name + '</span><span class="sd-email">' + r.email + '</span>';
+              item.addEventListener("click", function() {
+                addStudent({ id: r.id, name: r.name });
+              });
+              dropdown.appendChild(item);
+            });
+          }
+          dropdown.classList.add("show");
+        });
+    }, 300);
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener("click", function(e) {
+    if (!e.target.closest(".student-search-wrap")) {
+      dropdown.classList.remove("show");
+    }
+  });
+
+  renderAssigned();
+});
+</script>
+{% endblock %}

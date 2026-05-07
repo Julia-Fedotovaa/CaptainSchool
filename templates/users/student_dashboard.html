@@ -1,0 +1,648 @@
+{% extends "base_template.html" %}
+{% load static %}
+{% load l10n %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #7748FF; }
+.site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
+
+.bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bg-blob { position: absolute; background: #fff; border-radius: 50%; }
+.bg-blob-1 { width: 450px; height: 450px; top: 25%; left: -150px; opacity: .13; }
+.bg-blob-2 { width: 360px; height: 360px; top: 55%; right: -110px; opacity: .11; }
+.bg-blob-3 { width: 220px; height: 220px; bottom: 10%; left: 35%; opacity: .08; }
+
+.dash-wrap {
+  position: relative; z-index: 1;
+  max-width: 1160px; margin: 0 auto; padding: 0 2rem 5rem;
+}
+
+/* ===== PROFILE CARD ===== */
+.profile-card {
+  background: #fff; border-radius: 22px;
+  padding: 2rem 2.2rem; display: flex; align-items: center; gap: 2rem;
+  position: relative; margin-bottom: 1.6rem;
+  box-shadow: 0 8px 40px rgba(40,0,120,.10);
+}
+.profile-avatar {
+  width: 120px; height: 120px; border-radius: 16px; overflow: hidden; flex-shrink: 0;
+  background: linear-gradient(135deg, #1a1a2e, #0f3460);
+  display: flex; align-items: center; justify-content: center;
+}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-avatar .ph { font-size: 4rem; color: rgba(255,255,255,.5); }
+.profile-body { flex: 1; min-width: 0; }
+.profile-body h2 { font-size: 1.6rem; font-weight: 800; color: #1a1a2e; margin: 0 0 .1rem; }
+.profile-sub { color: #999; font-size: .85rem; margin-bottom: .8rem; }
+.profile-pbar { height: 6px; background: #ede9fe; border-radius: 3px; overflow: hidden; margin-bottom: .3rem; }
+.profile-pfill { height: 100%; background: linear-gradient(90deg, #7748FF, #b08aff); border-radius: 3px; transition: width .6s; }
+.profile-plbl { font-size: .7rem; color: #bbb; margin-bottom: 1rem; }
+
+.profile-stats { display: flex; gap: 0; align-items: center; }
+.ps { display: flex; align-items: center; gap: .5rem; padding: 0 1.4rem; }
+.ps:first-child { padding-left: 0; }
+.ps-icon { font-size: 1.1rem; }
+.ps-icon.a { color: #7748FF; } .ps-icon.b { color: #aaa; } .ps-icon.c { color: #22c55e; }
+.ps-val { font-size: 1.2rem; font-weight: 700; color: #1a1a2e; line-height: 1; }
+.ps-lbl { font-size: .68rem; color: #999; }
+.ps-div { width: 1px; height: 30px; background: #ede9fe; flex-shrink: 0; }
+
+.edit-btn {
+  position: absolute; top: 1.5rem; right: 1.8rem;
+  background: #7748FF; color: #fff; padding: .4rem 1.2rem;
+  border-radius: 11px; font-size: .88rem; font-weight: 600;
+  text-decoration: none; font-family: 'Poppins', sans-serif;
+  transition: background .2s;
+}
+.edit-btn:hover { background: #5c2ee0; color: #fff; }
+
+/* ===== UNIFIED MIDDLE CARD ===== */
+.middle-card {
+  background: #fff; border-radius: 22px; overflow: hidden;
+  box-shadow: 0 8px 40px rgba(40,0,120,.10);
+  display: grid; grid-template-columns: 1fr 370px;
+  margin-bottom: 1.6rem;
+}
+
+/* -- Left panel -- */
+.mid-left { padding: 1.8rem 2rem; }
+.mid-section-title {
+  font-size: .95rem; font-weight: 700; color: #1a1a2e;
+  display: flex; align-items: center; gap: .5rem; margin-bottom: 1rem;
+}
+.mid-section-title i { color: #7748FF; font-size: 1.05rem; }
+
+.badges-grid {
+  display: flex; flex-wrap: wrap; gap: .9rem;
+}
+.badge-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .25rem; width: 72px; cursor: pointer; transition: transform .15s;
+}
+.badge-item:hover { transform: translateY(-3px); }
+.badge-item svg { width: 56px; height: 68px; }
+.badge-item span { font-size: .68rem; color: #666; font-weight: 600; text-align: center; line-height: 1.2; }
+
+.badges-empty { color: #ccc; font-size: .85rem; padding: .5rem 0; }
+
+/* -- Right panel -- */
+.mid-right {
+  padding: 1.6rem 1.6rem;
+  background: #faf9ff;
+  border-left: 1px solid #f0ecff;
+  display: flex; flex-direction: column;
+}
+
+/* Calendar */
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .8rem; }
+.cal-month { font-size: .9rem; font-weight: 700; color: #1a1a2e; }
+.cal-nav { display: flex; gap: .25rem; }
+.cal-nav button {
+  width: 26px; height: 26px; border-radius: 7px; border: none;
+  background: #ede9fe; color: #7748FF; font-size: .78rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: background .15s;
+}
+.cal-nav button:hover { background: #e0d8ff; }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+.cal-dow { font-size: .6rem; font-weight: 700; color: #ccc; text-align: center; padding: .15rem 0; }
+.cal-day {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  font-size: .74rem; font-weight: 600; color: #555;
+  border-radius: 7px; cursor: pointer; transition: background .15s; position: relative;
+}
+.cal-day:hover { background: #f3eeff; color: #7748FF; }
+.cal-day.today { background: #7748FF; color: #fff; font-weight: 800; }
+.cal-day.has-event { color: #7748FF; font-weight: 700; }
+.cal-day.has-event::after {
+  content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+  width: 4px; height: 4px; border-radius: 50%; background: #7748FF;
+}
+.cal-day.today.has-event::after { background: #fff; }
+.cal-day.other-month { color: #ddd; cursor: default; }
+.cal-day.other-month:hover { background: transparent; }
+
+/* Webinar list in right panel */
+.webinar-section {
+  margin-top: 1rem; border-top: 1px solid #f0ecff; padding-top: .8rem; flex: 1;
+}
+.webinar-section-title {
+  font-size: .8rem; font-weight: 700; color: #1a1a2e;
+  display: flex; align-items: center; gap: .4rem; margin-bottom: .6rem;
+}
+.webinar-section-title i { color: #7748FF; }
+
+.wlist { display: flex; flex-direction: column; gap: .45rem; }
+.witem {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .5rem .6rem; border-radius: 10px;
+  background: #fff; border-left: 3px solid #7748FF;
+  cursor: pointer; transition: background .15s;
+}
+.witem:hover { background: #f5f3ff; }
+.witem-date {
+  min-width: 38px; text-align: center; background: #7748FF; color: #fff;
+  border-radius: 7px; padding: .25rem .35rem; flex-shrink: 0;
+}
+.witem-date .wd { font-size: .9rem; font-weight: 700; line-height: 1; }
+.witem-date .wm { font-size: .5rem; font-weight: 600; text-transform: uppercase; }
+.witem-info { flex: 1; min-width: 0; }
+.witem-info .wn { font-size: .78rem; font-weight: 600; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.witem-info .wt { font-size: .66rem; color: #999; }
+.witem-badge {
+  font-size: .6rem; font-weight: 700; padding: .12rem .4rem;
+  border-radius: 5px; background: #ede9fe; color: #7748FF; flex-shrink: 0;
+}
+
+/* ===== MODALS ===== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.45); backdrop-filter: blur(3px); z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+@keyframes modalIn { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Badge modal */
+.badge-modal {
+  background: #fff; border-radius: 20px; padding: 2.5rem 2rem;
+  max-width: 360px; width: 90%; text-align: center;
+  box-shadow: 0 12px 48px rgba(40,0,120,.2); animation: modalIn .25s ease;
+}
+.badge-modal .medal-lg { width: 100px; height: 125px; margin-bottom: 1rem; }
+.badge-modal h3 { font-size: 1.3rem; font-weight: 700; color: #1a1a2e; margin-bottom: .4rem; }
+.badge-modal p { font-size: .92rem; color: #666; margin-bottom: .3rem; }
+.badge-modal .badge-date { font-size: .8rem; color: #aaa; }
+.modal-close-btn {
+  margin-top: 1.2rem; background: #7748FF; color: #fff; border: none;
+  padding: .5rem 1.8rem; border-radius: 10px; font-size: .9rem;
+  font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;
+}
+.modal-close-btn:hover { background: #5c2ee0; }
+
+/* Day webinars popup */
+.day-modal {
+  background: #fff; border-radius: 20px; padding: 2rem 2rem 1.5rem;
+  width: 420px; max-width: 92vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2); animation: modalIn .2s ease;
+}
+.day-modal-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem;
+}
+.day-modal-header h3 {
+  font-size: 1.1rem; font-weight: 800; color: #1a1a2e; margin: 0;
+  display: flex; align-items: center; gap: .5rem;
+}
+.day-modal-header h3 i { color: #7748FF; }
+.day-modal-close {
+  width: 32px; height: 32px; border-radius: 9px; border: none;
+  background: #f3eeff; color: #7748FF; font-size: .9rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.day-modal-close:hover { background: #ede9fe; }
+.day-wlist { display: flex; flex-direction: column; gap: .5rem; }
+.day-witem {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .7rem .8rem; border-radius: 12px;
+  background: #faf8ff; border: 1px solid #f0ecff;
+  cursor: pointer; transition: all .15s;
+}
+.day-witem:hover { background: #f3eeff; border-color: #e0d8ff; transform: translateY(-1px); }
+.day-witem-time {
+  min-width: 44px; text-align: center; background: #7748FF; color: #fff;
+  border-radius: 9px; padding: .3rem .4rem; flex-shrink: 0;
+  font-size: .78rem; font-weight: 700; line-height: 1.2;
+}
+.day-witem-info { flex: 1; min-width: 0; }
+.day-witem-name { font-size: .85rem; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day-witem-meta { font-size: .72rem; color: #999; }
+.day-witem-badge {
+  font-size: .62rem; font-weight: 700; padding: .15rem .45rem;
+  border-radius: 6px; background: #ede9fe; color: #7748FF; flex-shrink: 0; white-space: nowrap;
+}
+.day-empty { color: #ccc; font-size: .85rem; text-align: center; padding: 1rem 0; }
+
+/* Webinar detail modal */
+.wmodal {
+  background: #fff; border-radius: 22px; padding: 2.2rem 2.2rem 1.8rem;
+  max-width: 440px; width: 92%;
+  box-shadow: 0 12px 48px rgba(40,0,120,.2); animation: modalIn .25s ease;
+}
+.wmodal-label {
+  font-size: .72rem; font-weight: 700; color: #7748FF;
+  text-transform: uppercase; letter-spacing: .04em; margin-bottom: .3rem;
+}
+.wmodal h3 { font-size: 1.45rem; font-weight: 800; color: #1a1a2e; margin-bottom: 1.4rem; }
+.wmodal-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem; margin-bottom: 1.2rem;
+}
+.wmodal-cell .wmc-l { font-size: .7rem; color: #aaa; font-weight: 600; margin-bottom: .2rem; }
+.wmodal-cell .wmc-v { font-size: .95rem; font-weight: 700; color: #1a1a2e; }
+.wmodal-row2 { display: flex; gap: 2rem; margin-bottom: 1rem; }
+.wmodal-row2 .wmodal-cell { flex: 1; }
+.wmodal-desc-lbl { font-size: .7rem; color: #aaa; font-weight: 600; margin-bottom: .2rem; }
+.wmodal-desc-txt { font-size: .88rem; color: #555; line-height: 1.5; margin-bottom: 1rem; }
+.wmodal-join {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  width: 100%; padding: .75rem; border-radius: 14px; border: none;
+  background: #7748FF; color: #fff; font-size: 1rem; font-weight: 700;
+  font-family: 'Poppins', sans-serif; cursor: pointer; transition: background .2s;
+  text-decoration: none;
+}
+.wmodal-join:hover { background: #5c2ee0; color: #fff; }
+.wmodal-close {
+  display: block; width: 100%; margin-top: .6rem; padding: .6rem;
+  background: none; border: 2px solid #f0ecff; border-radius: 12px;
+  color: #888; font-size: .88rem; font-weight: 700;
+  font-family: 'Poppins', sans-serif; cursor: pointer; transition: all .15s; text-align: center;
+}
+.wmodal-close:hover { border-color: #7748FF; color: #7748FF; }
+
+/* ===== SECTION LABEL ===== */
+.section-label {
+  display: inline-block; background: rgba(255,255,255,.22);
+  backdrop-filter: blur(6px); color: #fff; font-weight: 700; font-size: 1rem;
+  padding: .48rem 1.3rem; border-radius: 12px; margin-bottom: 1.1rem;
+}
+
+/* ===== COURSES GRID ===== */
+.courses-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.2rem;
+}
+.course-card {
+  background: #fff; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,.06);
+  transition: transform .2s, box-shadow .2s;
+  text-decoration: none; color: inherit; display: flex; flex-direction: column;
+}
+.course-card:hover { transform: translateY(-4px); box-shadow: 0 10px 35px rgba(0,0,0,.12); }
+.course-card-img {
+  height: 120px; background: linear-gradient(135deg, #a78bff, #7748FF);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.course-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.course-card-img-ph { font-size: 2.5rem; color: rgba(255,255,255,.3); }
+.course-card-cat {
+  position: absolute; top: .6rem; left: .6rem;
+  background: rgba(0,0,0,.25); backdrop-filter: blur(4px);
+  color: #fff; font-size: .68rem; font-weight: 700;
+  padding: .15rem .6rem; border-radius: 6px;
+}
+.course-card-body { padding: 1rem 1.1rem; flex: 1; display: flex; flex-direction: column; }
+.course-card-title { font-size: .95rem; font-weight: 700; color: #1a1a2e; margin-bottom: .3rem; line-height: 1.3; }
+.course-card-meta { display: flex; gap: .8rem; font-size: .74rem; color: #aaa; margin-bottom: .7rem; }
+.course-card-meta i { color: #c4b0ff; }
+.course-card-progress { margin-top: auto; }
+.course-card-pbar { height: 5px; background: #ede9fe; border-radius: 3px; overflow: hidden; }
+.course-card-pfill { height: 100%; background: linear-gradient(90deg, #7748FF, #b08aff); border-radius: 3px; }
+.course-card-plbl { font-size: .7rem; color: #999; margin-top: .2rem; }
+
+/* ===== FOOTER ===== */
+footer { background: linear-gradient(180deg, #5a2ee0, #7748FF) !important; color: rgba(255,255,255,.75) !important; }
+footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.68) !important; }
+
+@media (max-width: 900px) {
+  .middle-card { grid-template-columns: 1fr; }
+  .mid-right { border-left: none; border-top: 1px solid #f0ecff; }
+  .courses-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .profile-card { flex-direction: column; text-align: center; }
+  .profile-stats { flex-wrap: wrap; justify-content: center; }
+  .courses-grid { grid-template-columns: 1fr; }
+  .wmodal-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="bg-blob-wrap">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
+</div>
+
+<div class="dash-wrap">
+
+  {# ===== PROFILE ===== #}
+  <div class="profile-card">
+    <div class="profile-avatar">
+      {% if student.user.avatar %}
+        <img src="{{ student.user.avatar.url }}" alt="">
+      {% else %}
+        <i class="bi bi-person-fill ph"></i>
+      {% endif %}
+    </div>
+    <div class="profile-body">
+      <h2>{{ student.user.get_full_name }}</h2>
+      <div class="profile-sub">{{ student.education_level }}{% if student.study_status %} · {{ student.study_status }}{% endif %}</div>
+      <div class="profile-pbar"><div class="profile-pfill" style="width:{{ avg_completion }}%"></div></div>
+      <div class="profile-plbl">{{ avg_completion }}% курсов пройдено</div>
+      <div class="profile-stats">
+        <div class="ps">
+          <i class="bi bi-flag-fill ps-icon a"></i>
+          <div><div class="ps-val">{{ stats.quizzes_passed }}</div><div class="ps-lbl">Тестов</div></div>
+        </div>
+        <div class="ps-div"></div>
+        <div class="ps">
+          <i class="bi bi-clock ps-icon b"></i>
+          <div><div class="ps-val">{{ stats.best_time_display }}</div><div class="ps-lbl">Лучшее время</div></div>
+        </div>
+        <div class="ps-div"></div>
+        <div class="ps">
+          <i class="bi bi-check-circle ps-icon c"></i>
+          <div><div class="ps-val">{{ stats.correct_answers }}</div><div class="ps-lbl">Правильных</div></div>
+        </div>
+      </div>
+    </div>
+    <a href="{% url 'profile_edit' %}" class="edit-btn">Редактировать</a>
+  </div>
+
+  {# ===== UNIFIED CARD: Badges + Calendar/Webinars ===== #}
+  <div class="middle-card">
+
+    {# LEFT: Achievements #}
+    <div class="mid-left">
+      <div class="mid-section-title"><i class="bi bi-trophy-fill"></i> Достижения</div>
+      <div class="badges-grid">
+        {% for sb in badges %}
+          {% with b=sb.badge %}
+            <div class="badge-item"
+                 onclick="showBadgeModal(this)"
+                 data-name="{{ b.display_name }}"
+                 data-desc="{{ b.display_desc }}"
+                 data-date="{{ sb.awarded_at|date:'d.m.Y H:i' }}"
+                 data-color-a="{{ b.color_a }}"
+                 data-color-b="{{ b.color_b }}">
+              <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="20" y="0" width="8" height="30" fill="{{ b.color_a }}"/>
+                <rect x="28" y="0" width="8" height="30" fill="#fff"/>
+                <rect x="36" y="0" width="8" height="30" fill="{{ b.color_b }}"/>
+                <circle cx="32" cy="54" r="22" fill="{{ b.color_a }}"/>
+                <circle cx="32" cy="54" r="18" fill="{{ b.color_b }}"/>
+                <polygon points="32,38 34.5,47 44,47 36.7,52.5 39.5,62 32,56.5 24.5,62 27.3,52.5 20,47 29.5,47"
+                         fill="#FFD700" stroke="#e6b800" stroke-width="0.5"/>
+              </svg>
+              <span>{{ b.display_name }}</span>
+            </div>
+          {% endwith %}
+        {% empty %}
+          <p class="badges-empty">Достижения появятся после прохождения тестов.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# RIGHT: Calendar + Webinars #}
+    <div class="mid-right">
+      <div class="mid-section-title"><i class="bi bi-calendar3"></i> Календарь</div>
+      <div class="cal-header">
+        <span class="cal-month" id="cal-month-lbl"></span>
+        <div class="cal-nav">
+          <button onclick="calPrev()"><i class="bi bi-chevron-left"></i></button>
+          <button onclick="calNext()"><i class="bi bi-chevron-right"></i></button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-grid">
+        {% for d in "ПВСЧПСВ" %}<div class="cal-dow">{{ d }}</div>{% endfor %}
+      </div>
+
+      <div class="webinar-section">
+        <div class="webinar-section-title"><i class="bi bi-camera-video-fill"></i> Предстоящие вебинары</div>
+        <div class="wlist">
+          {% for w in upcoming_webinars %}
+            <div class="witem"
+                 onclick="showWebinarDetail(this)"
+                 data-course="{{ w.course.name }}"
+                 data-date="{{ w.date|date:'d.m.Y' }}"
+                 data-date-key="{{ w.date|date:'Y-m-d' }}"
+                 data-time-start="{{ w.start_time|time:'H:i' }}"
+                 data-time-end="{{ w.end_time|time:'H:i' }}"
+                 data-format="{{ w.lesson_format }}"
+                 data-mentor="{% if w.mentor %}{{ w.mentor.user.get_full_name }}{% else %}—{% endif %}"
+                 data-category="{{ w.course.category.name|default:'Общий' }}"
+                 data-location="{{ w.location }}"
+                 data-desc="{{ w.description }}">
+              <div class="witem-date">
+                <div class="wd">{{ w.date|date:"d" }}</div>
+                <div class="wm">{{ w.date|date:"M" }}</div>
+              </div>
+              <div class="witem-info">
+                <div class="wn">{{ w.course.name }}</div>
+                <div class="wt">{{ w.start_time|time:"H:i" }} — {{ w.end_time|time:"H:i" }}{% if w.mentor %} · {{ w.mentor.user.get_full_name }}{% endif %}</div>
+              </div>
+              <span class="witem-badge">{{ w.course.category.name|default:"Общий" }}</span>
+            </div>
+          {% empty %}
+            <p style="color:#ccc; font-size:.82rem;">Нет предстоящих вебинаров</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ===== COURSES ===== #}
+  <div class="section-label">Мои курсы</div>
+  <div class="courses-grid">
+    {% for enrollment in enrollments %}
+      <a href="{% url 'course_detail' enrollment.course.id %}" class="course-card">
+        <div class="course-card-img">
+          {% if enrollment.course.image %}
+            <img src="{{ enrollment.course.image.url }}" alt="">
+          {% else %}
+            <i class="bi bi-book-fill course-card-img-ph"></i>
+          {% endif %}
+          {% if enrollment.course.category %}
+            <span class="course-card-cat">{{ enrollment.course.category.name }}</span>
+          {% endif %}
+        </div>
+        <div class="course-card-body">
+          <div class="course-card-title">{{ enrollment.course.name }}</div>
+          <div class="course-card-meta">
+            <span><i class="bi bi-collection-play"></i> {{ enrollment.lessons_count }} ур.</span>
+            {% if enrollment.course.duration_hours %}
+              <span><i class="bi bi-clock"></i> {{ enrollment.course.duration_hours }} ч.</span>
+            {% endif %}
+          </div>
+          <div class="course-card-progress">
+            <div class="course-card-pbar"><div class="course-card-pfill" style="width:{{ enrollment.progress_percent }}%"></div></div>
+            <div class="course-card-plbl">{{ enrollment.progress_percent }}% пройдено</div>
+          </div>
+        </div>
+      </a>
+    {% empty %}
+      <p style="color:rgba(255,255,255,.7); font-size:.95rem; grid-column:1/-1;">
+        Вы ещё не записаны ни на один курс.
+        <a href="{% url 'all_courses' %}" style="color:#ffe866;">Выбрать курс →</a>
+      </p>
+    {% endfor %}
+  </div>
+
+</div>
+
+{# ===== BADGE MODAL ===== #}
+<div class="modal-overlay" id="badgeOverlay" onclick="if(event.target===this)closeBadgeModal()">
+  <div class="badge-modal">
+    <svg class="medal-lg" viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect id="bm-r1" x="20" y="0" width="8" height="30"/>
+      <rect x="28" y="0" width="8" height="30" fill="#fff"/>
+      <rect id="bm-r2" x="36" y="0" width="8" height="30"/>
+      <circle id="bm-c1" cx="32" cy="54" r="22"/>
+      <circle id="bm-c2" cx="32" cy="54" r="18"/>
+      <polygon points="32,38 34.5,47 44,47 36.7,52.5 39.5,62 32,56.5 24.5,62 27.3,52.5 20,47 29.5,47"
+               fill="#FFD700" stroke="#e6b800" stroke-width="0.5"/>
+    </svg>
+    <h3 id="badgeModalName"></h3>
+    <p id="badgeModalDesc"></p>
+    <p class="badge-date" id="badgeModalDate"></p>
+    <button class="modal-close-btn" onclick="closeBadgeModal()">Закрыть</button>
+  </div>
+</div>
+
+{# ===== DAY WEBINARS POPUP ===== #}
+<div class="modal-overlay" id="dayOverlay" onclick="if(event.target===this)closeDayPopup()">
+  <div class="day-modal" onclick="event.stopPropagation()">
+    <div class="day-modal-header">
+      <h3><i class="bi bi-calendar-event"></i> <span id="dayTitle"></span></h3>
+      <button class="day-modal-close" onclick="closeDayPopup()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="day-wlist" id="dayWlist"></div>
+  </div>
+</div>
+
+{# ===== WEBINAR DETAIL MODAL ===== #}
+<div class="modal-overlay" id="wmodalOverlay" onclick="if(event.target===this)closeWebinarDetail()">
+  <div class="wmodal" onclick="event.stopPropagation()">
+    <div class="wmodal-label">ВЕБИНАР</div>
+    <h3 id="wm-title"></h3>
+    <div class="wmodal-grid">
+      <div class="wmodal-cell"><div class="wmc-l">Дата</div><div class="wmc-v" id="wm-date"></div></div>
+      <div class="wmodal-cell"><div class="wmc-l">Время</div><div class="wmc-v" id="wm-time"></div></div>
+      <div class="wmodal-cell"><div class="wmc-l">Формат</div><div class="wmc-v" id="wm-format"></div></div>
+    </div>
+    <div class="wmodal-row2">
+      <div class="wmodal-cell"><div class="wmc-l">Наставник</div><div class="wmc-v" id="wm-mentor"></div></div>
+      <div class="wmodal-cell"><div class="wmc-l">Категория</div><div class="wmc-v" id="wm-category"></div></div>
+    </div>
+    <div id="wm-desc-block" style="display:none">
+      <div class="wmodal-desc-lbl">Описание</div>
+      <div class="wmodal-desc-txt" id="wm-desc"></div>
+    </div>
+    <a href="#" class="wmodal-join" id="wm-join-btn" style="display:none">
+      <i class="bi bi-camera-video-fill"></i> Присоединиться
+    </a>
+    <button class="wmodal-close" onclick="closeWebinarDetail()">Закрыть</button>
+  </div>
+</div>
+
+<script>
+/* Badge modal */
+function showBadgeModal(el){
+  var ca=el.dataset.colorA, cb=el.dataset.colorB;
+  document.getElementById('bm-r1').setAttribute('fill',ca);
+  document.getElementById('bm-r2').setAttribute('fill',cb);
+  document.getElementById('bm-c1').setAttribute('fill',ca);
+  document.getElementById('bm-c2').setAttribute('fill',cb);
+  document.getElementById('badgeModalName').textContent=el.dataset.name;
+  document.getElementById('badgeModalDesc').textContent=el.dataset.desc;
+  document.getElementById('badgeModalDate').textContent='Получено: '+el.dataset.date;
+  document.getElementById('badgeOverlay').classList.add('active');
+}
+function closeBadgeModal(){document.getElementById('badgeOverlay').classList.remove('active');}
+
+/* Webinar detail modal */
+function showWebinarDetail(el){
+  document.getElementById('wm-title').textContent=el.dataset.format+': '+el.dataset.course;
+  document.getElementById('wm-date').textContent=el.dataset.date;
+  document.getElementById('wm-time').textContent=el.dataset.timeStart+' — '+el.dataset.timeEnd;
+  document.getElementById('wm-format').textContent=el.dataset.format;
+  document.getElementById('wm-mentor').textContent=el.dataset.mentor;
+  document.getElementById('wm-category').textContent=el.dataset.category;
+  var desc=el.dataset.desc, db=document.getElementById('wm-desc-block');
+  if(desc){document.getElementById('wm-desc').textContent=desc;db.style.display='';}else{db.style.display='none';}
+  var loc=el.dataset.location, jb=document.getElementById('wm-join-btn');
+  if(loc){jb.href=loc;jb.style.display='';}else{jb.style.display='none';}
+  document.getElementById('wmodalOverlay').classList.add('active');
+}
+function closeWebinarDetail(){document.getElementById('wmodalOverlay').classList.remove('active');}
+
+/* Day webinars popup */
+function showDayWebinars(dateKey){
+  var parts=dateKey.split('-');
+  var formatted=parts[2]+'.'+parts[1]+'.'+parts[0];
+  document.getElementById('dayTitle').textContent='Вебинары '+formatted;
+  var list=document.getElementById('dayWlist');
+  list.innerHTML='';
+  var items=document.querySelectorAll('.witem');
+  var found=0;
+  items.forEach(function(w){
+    if(w.dataset.dateKey===dateKey){
+      var el=document.createElement('div');
+      el.className='day-witem';
+      el.innerHTML=
+        '<div class="day-witem-time">'+w.dataset.timeStart+'</div>'+
+        '<div class="day-witem-info">'+
+          '<div class="day-witem-name">'+w.dataset.course+'</div>'+
+          '<div class="day-witem-meta">'+w.dataset.timeStart+' — '+w.dataset.timeEnd+
+            (w.dataset.mentor&&w.dataset.mentor!=='—'?' · '+w.dataset.mentor:'')+
+          '</div>'+
+        '</div>'+
+        '<span class="day-witem-badge">'+w.dataset.category+'</span>';
+      (function(origEl){
+        el.onclick=function(){ closeDayPopup(); showWebinarDetail(origEl); };
+      })(w);
+      list.appendChild(el);
+      found++;
+    }
+  });
+  if(!found){ list.innerHTML='<div class="day-empty">Нет вебинаров на этот день</div>'; }
+  document.getElementById('dayOverlay').classList.add('active');
+}
+function closeDayPopup(){document.getElementById('dayOverlay').classList.remove('active');}
+
+/* Escape key */
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    document.getElementById('badgeOverlay').classList.remove('active');
+    document.getElementById('wmodalOverlay').classList.remove('active');
+    document.getElementById('dayOverlay').classList.remove('active');
+  }
+});
+
+/* Calendar */
+(function(){
+  var eventDates={{ webinar_dates|safe }};
+  var now=new Date(), year=now.getFullYear(), month=now.getMonth();
+  var mn=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  function render(){
+    document.getElementById('cal-month-lbl').textContent=mn[month]+' '+year;
+    var g=document.getElementById('cal-grid');
+    while(g.children.length>7)g.removeChild(g.lastChild);
+    var f=new Date(year,month,1).getDay(), off=(f+6)%7;
+    var dim=new Date(year,month+1,0).getDate(), dip=new Date(year,month,0).getDate();
+    for(var i=0;i<off;i++){var d=document.createElement('div');d.className='cal-day other-month';d.textContent=dip-off+1+i;g.appendChild(d);}
+    for(var day=1;day<=dim;day++){
+      var d=document.createElement('div');d.className='cal-day';d.textContent=day;
+      var k=year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+      if(eventDates.indexOf(k)!==-1){
+        d.classList.add('has-event');
+        d.onclick=(function(key){ return function(){ showDayWebinars(key); }; })(k);
+      }
+      if(year===now.getFullYear()&&month===now.getMonth()&&day===now.getDate())d.classList.add('today');
+      g.appendChild(d);
+    }
+  }
+  window.calPrev=function(){month--;if(month<0){month=11;year--;}render();};
+  window.calNext=function(){month++;if(month>11){month=0;year++;}render();};
+  render();
+})();
+</script>
+
+{% endblock %}

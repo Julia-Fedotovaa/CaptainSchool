@@ -1,0 +1,584 @@
+﻿{% extends "base_template.html" %}
+{% load static %}
+
+{% block title %}{{ test.title }}{% endblock %}
+
+{% block extra_css %}
+  <style>
+      body {
+          background: #7748FF;
+      }
+
+      .site-header {
+          position: relative !important;
+          background: transparent;
+          padding: 1.8rem 0;
+      }
+
+      .bg-blob-wrap {
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+          overflow: hidden;
+      }
+
+      .bg-blob {
+          position: absolute;
+          background: #fff;
+      }
+
+      .bg-blob-1 {
+          width: 320px;
+          height: 320px;
+          top: 30%;
+          left: -100px;
+          border-radius: 50%;
+          opacity: .18;
+      }
+
+      .bg-blob-2 {
+          width: 280px;
+          height: 280px;
+          top: 55%;
+          right: -80px;
+          border-radius: 50%;
+          opacity: .15;
+      }
+
+      .test-wrapper {
+          position: relative;
+          z-index: 1;
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 0 2rem 5rem;
+      }
+
+      .test-title {
+          color: #fff;
+          font-size: 2.8rem;
+          font-weight: 800;
+          margin-bottom: 1.8rem;
+      }
+
+      /* Progress */
+      .test-progress {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 2rem;
+      }
+
+      .test-progress-bar {
+          flex: 1;
+          height: 6px;
+          background: rgba(255, 255, 255, .28);
+          border-radius: 3px;
+          overflow: hidden;
+      }
+
+      .test-progress-fill {
+          height: 100%;
+          background: #fff;
+          border-radius: 3px;
+          transition: width .4s;
+      }
+
+      .test-progress-label {
+          color: rgba(255, 255, 255, .9);
+          font-size: .88rem;
+          font-weight: 600;
+          white-space: nowrap;
+      }
+
+      /* Card */
+      .question-card {
+          background: #fff;
+          border-radius: 24px;
+          padding: 2.2rem 2.5rem 2rem;
+          box-shadow: 0 12px 60px rgba(40, 0, 120, .18);
+          margin-bottom: 1.5rem;
+          position: relative;
+          overflow: hidden;
+      }
+
+      .question-card::before {
+          content: '';
+          position: absolute;
+          width: 260px;
+          height: 260px;
+          background: #7748FF;
+          opacity: .12;
+          border-radius: 50%;
+          top: -80px;
+          left: -80px;
+          filter: blur(50px);
+          pointer-events: none;
+      }
+
+      .question-card::after {
+          content: '';
+          position: absolute;
+          width: 220px;
+          height: 220px;
+          background: #7748FF;
+          opacity: .10;
+          border-radius: 50%;
+          bottom: -60px;
+          right: -60px;
+          filter: blur(40px);
+          pointer-events: none;
+      }
+
+      .question-counter {
+          font-size: .95rem;
+          font-weight: 700;
+          color: #888;
+          margin-bottom: .5rem;
+      }
+
+      .question-text {
+          font-size: 1rem;
+          color: #333;
+          line-height: 1.65;
+          margin-bottom: 1.4rem;
+      }
+
+      /* ── CHOICE ── */
+      .choices-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: .75rem;
+      }
+
+      .choice-btn {
+          background: #7748FF;
+          color: #fff;
+          border: 2px solid transparent;
+          border-radius: 14px;
+          padding: .85rem 1.2rem;
+          font-size: .93rem;
+          font-weight: 600;
+          font-family: 'Poppins', sans-serif;
+          cursor: pointer;
+          text-align: center;
+          transition: background .15s, transform .12s, border-color .15s;
+      }
+
+      .choice-btn:hover {
+          background: #5c2ee0;
+          transform: translateY(-2px);
+      }
+
+      .choice-btn.selected {
+          background: #4312b8;
+          border-color: #ffe866;
+      }
+
+      /* ── MATCHING ── */
+      .matching-label {
+          font-size: .9rem;
+          font-weight: 700;
+          color: #888;
+          margin-bottom: 1.1rem;
+      }
+
+      .matching-area {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: .75rem 2rem;
+          align-items: start;
+      }
+
+      .match-col {
+          display: flex;
+          flex-direction: column;
+          gap: .6rem;
+      }
+
+      .match-col-title {
+          font-size: .78rem;
+          font-weight: 700;
+          color: #bbb;
+          text-transform: uppercase;
+          letter-spacing: .06em;
+          margin-bottom: .2rem;
+      }
+
+      .match-item {
+          border-radius: 12px;
+          padding: .7rem 1rem;
+          font-size: .9rem;
+          font-weight: 600;
+          font-family: 'Poppins', sans-serif;
+          cursor: pointer;
+          text-align: center;
+          border: 2px solid transparent;
+          transition: background .15s, border-color .15s, transform .12s;
+          user-select: none;
+      }
+
+      /* Левая колонка */
+      .match-left {
+          background: #7748FF;
+          color: #fff;
+      }
+
+      .match-left:hover:not(.paired) {
+          background: #5c2ee0;
+          transform: translateY(-2px);
+      }
+
+      .match-left.active {
+          background: #4312b8;
+          border-color: #ffe866;
+          transform: scale(1.02);
+      }
+
+      .match-left.paired {
+          background: #22c55e;
+          border-color: #16a34a;
+          cursor: default;
+      }
+
+      /* Правая колонка */
+      .match-right {
+          background: #f0ebff;
+          color: #4312b8;
+      }
+
+      .match-right:hover:not(.paired) {
+          background: #e0d5ff;
+          transform: translateY(-2px);
+      }
+
+      .match-right.highlight {
+          background: #ddd6fe;
+          border-color: #7748FF;
+      }
+
+      .match-right.paired {
+          background: #dcfce7;
+          color: #166534;
+          border-color: #22c55e;
+          cursor: default;
+      }
+
+      /* Линии соединений */
+      .match-connections {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-around;
+          padding: 1.8rem 0;
+      }
+
+      .match-conn-line {
+          height: 2px;
+          background: #22c55e;
+          border-radius: 1px;
+          transform-origin: left center;
+          transition: opacity .2s;
+      }
+
+      /* Submit */
+      .card-submit-wrap {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 1.6rem;
+      }
+
+      .card-submit-btn {
+          background: #7748FF;
+          color: #fff;
+          border: none;
+          border-radius: 14px;
+          padding: .7rem 2.2rem;
+          font-size: .97rem;
+          font-weight: 700;
+          font-family: 'Poppins', sans-serif;
+          cursor: pointer;
+          transition: background .15s;
+      }
+
+      .card-submit-btn:hover {
+          background: #5c2ee0;
+      }
+
+      .card-submit-btn:disabled {
+          background: #c4b0ff;
+          cursor: not-allowed;
+      }
+
+      /* Finish */
+      .finish-wrap {
+          display: flex;
+          justify-content: center;
+          margin-top: .5rem;
+      }
+
+      .finish-btn {
+          background: #fff;
+          color: #7748FF;
+          border: none;
+          border-radius: 50px;
+          padding: .75rem 3rem;
+          font-size: 1rem;
+          font-weight: 700;
+          font-family: 'Poppins', sans-serif;
+          cursor: pointer;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, .12);
+          transition: background .2s, transform .15s;
+      }
+
+      .finish-btn:hover {
+          background: #f0e8ff;
+          transform: translateY(-2px);
+      }
+
+      /* Footer */
+      footer {
+          background: linear-gradient(180deg, #5a2ee0, #7748FF) !important;
+          color: rgba(255, 255, 255, .75) !important;
+          padding: 3rem 0 1.5rem !important;
+      }
+
+      footer h5 {
+          color: #fff !important;
+          font-weight: 700 !important;
+      }
+
+      footer ul li a {
+          color: rgba(255, 255, 255, .68) !important;
+      }
+
+      footer ul li a:hover {
+          color: #ffe866 !important;
+      }
+
+      @media (max-width: 640px) {
+          .choices-grid {
+              grid-template-columns: 1fr;
+          }
+
+          .matching-area {
+              grid-template-columns: 1fr;
+          }
+
+          .test-title {
+              font-size: 2rem;
+          }
+      }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="bg-blob-wrap">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+  </div>
+
+  <div class="test-wrapper">
+
+    <h1 class="test-title">{{ test.title }}</h1>
+
+    <div class="test-progress">
+      <div class="test-progress-bar">
+        <div class="test-progress-fill" style="width:{% widthratio question_num total 100 %}%"></div>
+      </div>
+      <span class="test-progress-label">{{ question_num }} / {{ total }}</span>
+    </div>
+
+    <form method="post" id="test-form">
+      {% csrf_token %}
+      <input type="hidden" name="session_id" value="{{ session.id }}">
+      <input type="hidden" name="question_id" value="{{ question.id }}">
+
+      {# ══════════════════════════════════════════════ #}
+      {#  CHOICE                                        #}
+      {# ══════════════════════════════════════════════ #}
+      {% if question.question_type == "choice" %}
+        <input type="hidden" name="choice_id" id="choice_id_input" value="">
+
+        <div class="question-card">
+          <div class="question-counter">Вопрос {{ question_num }} / {{ total }}</div>
+          <p class="question-text">{{ question.text }}</p>
+
+          <div class="choices-grid">
+            {% for choice in question.choices.all %}
+              <button type="button" class="choice-btn"
+                      data-id="{{ choice.id }}"
+                      onclick="selectChoice(this,'{{ choice.id }}')">
+                {{ choice.text }}
+              </button>
+            {% endfor %}
+          </div>
+
+          {% if question_num != total %}
+            <div class="card-submit-wrap">
+              <button type="submit" class="card-submit-btn" id="submit-choice-btn" disabled>
+                Следующий вопрос →
+              </button>
+            </div>
+          {% endif %}
+        </div>
+
+        {# ══════════════════════════════════════════════ #}
+        {#  MATCHING                                      #}
+        {# ══════════════════════════════════════════════ #}
+      {% elif question.question_type == "matching" %}
+        <input type="hidden" name="matching_answer" id="matching_answer_input" value="{}">
+
+        <div class="question-card">
+          <div class="question-counter">Вопрос {{ question_num }} / {{ total }}</div>
+          <p class="question-text">{{ question.text }}</p>
+
+          <div class="matching-label">Нажми на левый элемент, затем на правый — чтобы соединить пару</div>
+
+          <div class="matching-area">
+            {# Левая колонка #}
+            <div class="match-col" id="left-col">
+              <div class="match-col-title">Понятие</div>
+              {% for pair, right_text in pairs_with_shuffled %}
+                <div class="match-item match-left"
+                     id="left-{{ pair.id }}"
+                     data-pair-id="{{ pair.id }}">
+                  {{ pair.left_text }}
+                </div>
+              {% endfor %}
+            </div>
+
+            {# Правая колонка #}
+            <div class="match-col" id="right-col">
+              <div class="match-col-title">Определение</div>
+              {% for pair, right_text in pairs_with_shuffled %}
+                <div class="match-item match-right"
+                     id="right-{{ forloop.counter0 }}"
+                     data-right-text="{{ right_text }}"
+                     data-idx="{{ forloop.counter0 }}">
+                  {{ right_text }}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          {% if question_num != total %}
+            <div class="card-submit-wrap">
+              <button type="submit" class="card-submit-btn" id="submit-match-btn">
+                Следующий вопрос →
+              </button>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+    </form>
+
+    {% if question_num == total %}
+      <div class="finish-wrap">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="session_id" value="{{ session.id }}">
+          <input type="hidden" name="question_id" value="{{ question.id }}">
+          <input type="hidden" name="matching_answer" value="{}">
+          <button type="submit" class="finish-btn">Завершить</button>
+        </form>
+      </div>
+
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+      /* ─── CHOICE ─────────────────────────────────── */
+      function selectChoice(btn, id) {
+          document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          document.getElementById('choice_id_input').value = id;
+          const s = document.getElementById('submit-choice-btn');
+          if (s) s.disabled = false;
+      }
+
+      /* ─── MATCHING ───────────────────────────────── */
+      (function () {
+          const leftItems = document.querySelectorAll('.match-left');
+          const rightItems = document.querySelectorAll('.match-right');
+          if (!leftItems.length) return;
+
+          let activePairId = null;   // pair.id выбранного левого элемента
+          const connections = {};     // { pairId: rightText }
+
+          /* Клик по левому элементу */
+          leftItems.forEach(el => {
+              el.addEventListener('click', function () {
+                  if (this.classList.contains('paired')) return;
+
+                  // Снимаем старый выбор
+                  leftItems.forEach(e => {
+                      if (!e.classList.contains('paired')) e.classList.remove('active');
+                  });
+                  rightItems.forEach(e => {
+                      if (!e.classList.contains('paired')) e.classList.remove('highlight');
+                  });
+
+                  activePairId = this.dataset.pairId;
+                  this.classList.add('active');
+
+                  // Подсвечиваем правую колонку
+                  rightItems.forEach(e => {
+                      if (!e.classList.contains('paired')) e.classList.add('highlight');
+                  });
+              });
+          });
+
+          /* Клик по правому элементу */
+          rightItems.forEach(el => {
+              el.addEventListener('click', function () {
+                  if (!activePairId) return;
+                  if (this.classList.contains('paired')) return;
+
+                  const rightText = this.dataset.rightText;
+
+                  // Если эта правая уже была назначена другой паре — отменяем
+                  for (const pid in connections) {
+                      if (connections[pid] === rightText) {
+                          // Освобождаем левый элемент
+                          const oldLeft = document.getElementById('left-' + pid);
+                          if (oldLeft) {
+                              oldLeft.classList.remove('paired', 'active');
+                          }
+                          delete connections[pid];
+                      }
+                  }
+
+                  // Соединяем
+                  connections[activePairId] = rightText;
+                  updateHidden();
+
+                  // Визуал — левый
+                  const leftEl = document.getElementById('left-' + activePairId);
+                  if (leftEl) {
+                      leftEl.classList.remove('active');
+                      leftEl.classList.add('paired');
+                  }
+
+                  // Визуал — правый
+                  this.classList.remove('highlight');
+                  this.classList.add('paired');
+
+                  // Снимаем highlight со всех оставшихся
+                  rightItems.forEach(e => {
+                      if (!e.classList.contains('paired')) e.classList.remove('highlight');
+                  });
+
+                  activePairId = null;
+              });
+          });
+
+          function updateHidden() {
+              document.getElementById('matching_answer_input').value = JSON.stringify(connections);
+          }
+      })();
+  </script>
+{% endblock %}

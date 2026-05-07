@@ -1,0 +1,36 @@
+﻿{% extends "base.html" %}
+{% block title %}Траектории{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+  <h2>Индивидуальные траектории</h2>
+  <a href="{% url 'trajectory_create' %}" class="btn btn-success">
+    + Добавить
+  </a>
+</div>
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Ученик</th>
+      <th>Трек</th>
+      <th>Статус</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for t in items %}
+      <tr>
+        <td>{{ t.student }}</td>
+        <td>{{ t.track.name }}</td>
+        <td>{{ t.status }}</td>
+        <td class="text-end">
+          <a href="{% url 'trajectory_edit' t.id %}" class="btn btn-sm btn-outline-secondary">
+            ✏️
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

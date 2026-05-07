@@ -1,0 +1,23 @@
+﻿{% extends "base.html" %}
+{% block title %}Мои дети{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Мои дети</h2>
+
+<ul class="list-group">
+  {% for child in children %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      {{ child.user.last_name }} {{ child.user.first_name }}
+      <div>
+        {{ child.id }}
+        <a href="{% url 'parent_child_courses' child.user.id %}" class="btn btn-sm btn-outline-primary">
+          Курсы
+        </a>
+        <a href="{% url 'parent_child_schedule' child.user.id %}" class="btn btn-sm btn-outline-secondary">
+          Расписание
+        </a>
+      </div>
+    </li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,821 @@
+{% extends "base_template.html" %}
+{% load static %}
+
+{% block title %}Мои дети{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #7748FF; }
+.site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
+
+.bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bg-blob { position: absolute; background: #fff; border-radius: 50%; }
+.bg-blob-1 { width: 420px; height: 420px; top: 30%; left: -130px; opacity: .14; }
+.bg-blob-2 { width: 340px; height: 340px; top: 60%; right: -100px; opacity: .11; }
+.bg-blob-3 { width: 220px; height: 220px; bottom: 8%; left: 40%; opacity: .08; }
+
+.page-wrap { position: relative; z-index: 1; max-width: 1160px; margin: 0 auto; padding: 0 2rem 5rem; }
+
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+.page-title { color: #fff; font-size: 2.6rem; font-weight: 800; }
+
+.header-btns { display: flex; gap: .6rem; align-items: center; }
+.edit-profile-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.18); color: #fff; font-weight: 600; font-size: .88rem;
+  padding: .6rem 1.3rem; border-radius: 12px; border: 1.5px solid rgba(255,255,255,.3);
+  cursor: pointer; font-family: 'Poppins', sans-serif;
+  text-decoration: none; transition: all .2s; backdrop-filter: blur(4px);
+}
+.edit-profile-btn:hover { background: rgba(255,255,255,.28); color: #fff; border-color: rgba(255,255,255,.5); }
+.add-child-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: #fff; color: #7748FF; font-weight: 700; font-size: .92rem;
+  padding: .7rem 1.6rem; border-radius: 14px; border: none;
+  cursor: pointer; font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 16px rgba(0,0,0,.1);
+  transition: transform .2s, box-shadow .2s;
+}
+.add-child-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.15); }
+
+.child-edit-btn {
+  background: none; border: 1.5px solid #ede9fe; border-radius: 8px;
+  color: #7748FF; font-size: .72rem; font-weight: 600; padding: .3rem .7rem;
+  cursor: pointer; transition: all .2s; font-family: 'Poppins', sans-serif;
+  white-space: nowrap; text-decoration: none;
+  display: inline-flex; align-items: center; gap: .3rem;
+}
+.child-edit-btn:hover { background: #f5f3ff; border-color: #c4b0ff; color: #5c2ee0; }
+
+/* ── CHILD CARD ── */
+.children-grid { display: flex; flex-direction: column; gap: 1.6rem; }
+
+.child-card {
+  background: #fff; border-radius: 22px;
+  box-shadow: 0 8px 40px rgba(40,0,120,.13);
+  display: grid; grid-template-columns: 1fr 380px;
+  overflow: hidden;
+}
+
+/* LEFT */
+.child-left { padding: 1.8rem 2rem; display: flex; flex-direction: column; }
+
+.child-header { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.2rem; }
+.child-avatar {
+  width: 72px; height: 72px; border-radius: 14px;
+  background: linear-gradient(135deg, #1a1a2e, #0f3460);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: hidden;
+}
+.child-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.child-avatar-placeholder { font-size: 2.2rem; color: rgba(255,255,255,.45); }
+
+.child-name-block { flex: 1; min-width: 0; }
+.child-name-block h3 { font-size: 1.25rem; font-weight: 800; color: #1a1a2e; margin: 0 0 .15rem; }
+.child-sub { font-size: .8rem; color: #aaa; }
+
+.child-creds-btn {
+  background: none; border: 1.5px solid #ede9fe; border-radius: 8px;
+  color: #7748FF; font-size: .72rem; font-weight: 600; padding: .3rem .7rem;
+  cursor: pointer; transition: all .2s; font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+}
+.child-creds-btn:hover { background: #f5f3ff; border-color: #c4b0ff; }
+
+.child-progress-row { margin-bottom: 1rem; }
+.child-pbar { height: 6px; background: #ede9fe; border-radius: 3px; overflow: hidden; margin-bottom: .25rem; }
+.child-pfill { height: 100%; background: linear-gradient(90deg, #7748FF, #b08aff); border-radius: 3px; }
+.child-plabel { font-size: .72rem; color: #bbb; }
+
+.child-stats { display: flex; gap: 0; margin-bottom: 1.2rem; }
+.cstat { padding: 0 1rem; }
+.cstat:first-child { padding-left: 0; }
+.cstat .v { font-size: 1.15rem; font-weight: 800; color: #1a1a2e; line-height: 1; }
+.cstat .l { font-size: .66rem; color: #bbb; font-weight: 500; margin-top: .1rem; }
+.cstat-div { width: 1px; height: 26px; background: #ede9fe; flex-shrink: 0; align-self: center; }
+
+.child-section-label {
+  font-size: .7rem; font-weight: 700; color: #bbb; text-transform: uppercase;
+  letter-spacing: .06em; margin-bottom: .6rem;
+}
+
+/* Courses */
+.child-courses { display: flex; flex-direction: column; gap: .5rem; flex: 1; }
+.child-course-item {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .6rem .8rem; border-radius: 12px;
+  background: #f9f7ff; transition: background .2s;
+}
+.child-course-item:hover { background: #f0ebff; }
+.child-course-img {
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, #a78bff, #7748FF);
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.child-course-img img { width: 100%; height: 100%; object-fit: cover; }
+.child-course-img i { font-size: 1rem; color: rgba(255,255,255,.4); }
+.child-course-info { flex: 1; min-width: 0; }
+.child-course-name { font-size: .78rem; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.child-course-meta { font-size: .64rem; color: #aaa; display: flex; gap: .5rem; margin-top: .1rem; }
+.child-course-meta i { color: #c4b0ff; font-size: .58rem; }
+.child-course-pbar { height: 3px; background: #ede9fe; border-radius: 2px; overflow: hidden; margin-top: .25rem; }
+.child-course-pfill { height: 100%; background: linear-gradient(90deg, #7748FF, #b08aff); border-radius: 2px; }
+
+.view-all-link {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-size: .78rem; font-weight: 700; color: #7748FF;
+  text-decoration: none; margin-top: .5rem;
+}
+.view-all-link:hover { text-decoration: underline; }
+
+/* RIGHT */
+.child-right {
+  padding: 1.8rem 1.6rem;
+  background: #faf9ff;
+  border-left: 1px solid #f0ecff;
+  display: flex; flex-direction: column;
+}
+
+/* Badges */
+.badges-scroll {
+display: flex;
+  gap: 1.2rem;
+
+  /* ФИКС 1: Явно задаем высоту, чтобы скроллбар не «прыгал» при наведении */
+  height: 110px;
+  align-items: flex-start;
+
+  overflow-x: auto !important;
+  overflow-y: hidden;
+
+  /* ФИКС 2: Убираем конфликты с тач-скроллом и анимацией */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable; /* Резервирует место под скролл заранее */
+
+  padding-bottom: 10px;
+}
+.badges-scroll::-webkit-scrollbar { height: 6px; display: block !important; }
+.badges-scroll::-webkit-scrollbar-track {
+  background: #f0ecff !important;
+  border-radius: 10px;
+}
+
+.badges-scroll::-webkit-scrollbar-thumb {
+  background-color: #beaaff !important;
+  border-radius: 10px;
+  /* Важно: не меняем размер thumb при наведении, чтобы не было мерцания */
+}
+.badges-scroll::-webkit-scrollbar-thumb:hover { background: #a78bff; }
+.medal-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: .2rem; min-width: 52px;
+  cursor: pointer; transition: transform .15s;
+    backface-visibility: hidden;
+  transform: translateZ(0);
+}
+.medal-wrap:hover { transform: translateY(-2px); }
+.medal-wrap svg { width: 48px; height: 58px; }
+.medal-name { font-size: .62rem; color: #888; font-weight: 600; text-align: center; }
+
+/* Calendar */
+.child-calendar { margin-top: 1rem; }
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+.cal-month { font-size: .85rem; font-weight: 700; color: #1a1a2e; }
+.cal-nav { display: flex; gap: .25rem; }
+.cal-nav button {
+  width: 26px; height: 26px; border-radius: 7px; border: none;
+  background: #ede9fe; color: #7748FF; font-size: .75rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: background .15s;
+}
+.cal-nav button:hover { background: #e0d8ff; }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+.cal-dow { font-size: .58rem; font-weight: 700; color: #ccc; text-align: center; padding: .15rem 0; }
+.cal-day {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 600; color: #555;
+  border-radius: 7px; cursor: pointer; transition: background .15s; position: relative;
+}
+.cal-day:hover { background: #f3eeff; color: #7748FF; }
+.cal-day.today { background: #7748FF; color: #fff !important; font-weight: 800; }
+.cal-day.has-event { color: #7748FF; }
+.cal-day.has-event::after {
+  content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+  width: 4px; height: 4px; border-radius: 50%; background: #7748FF;
+}
+.cal-day.today.has-event::after { background: #fff; }
+.cal-day.other-month { color: #ddd; cursor: default; }
+.cal-day.other-month:hover { background: transparent; }
+
+/* Webinars */
+.child-webinars { margin-top: .8rem; flex: 1; }
+.webinar-list-parent { display: flex; flex-direction: column; gap: .45rem; }
+.webinar-item-p {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .5rem .6rem; border-radius: 10px;
+  background: #fff; border-left: 3px solid #7748FF;
+  cursor: pointer; transition: background .15s;
+}
+.webinar-item-p:hover { background: #f5f3ff; }
+.webinar-date-box {
+  min-width: 38px; text-align: center; background: #7748FF; color: #fff;
+  border-radius: 7px; padding: .25rem .35rem; flex-shrink: 0;
+}
+.webinar-date-box .wd-day { font-size: .9rem; font-weight: 700; line-height: 1; }
+.webinar-date-box .wd-mon { font-size: .5rem; font-weight: 600; text-transform: uppercase; }
+.webinar-info { flex: 1; min-width: 0; }
+.webinar-info .wi-course { font-size: .75rem; font-weight: 600; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.webinar-info .wi-meta { font-size: .64rem; color: #999; }
+
+/* ── MODALS ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.45); z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+
+.modal-box {
+  background: #fff; border-radius: 22px; padding: 2.2rem 2rem;
+  max-width: 420px; width: 92%;
+  box-shadow: 0 12px 48px rgba(40,0,120,.2);
+  animation: modalIn .25s ease;
+}
+@keyframes modalIn { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-box h3 { font-size: 1.3rem; font-weight: 800; color: #1a1a2e; margin-bottom: 1.2rem; text-align: center; }
+
+.modal-field { margin-bottom: .9rem; }
+.modal-field label { display: block; font-size: .78rem; font-weight: 600; color: #555; margin-bottom: .3rem; }
+.modal-field input, .modal-field select {
+  width: 100%; padding: .6rem .9rem; border: 1.5px solid #e0dce8; border-radius: 10px;
+  font-size: .88rem; font-family: 'Poppins', sans-serif; background: #faf9ff;
+  outline: none; transition: border-color .2s; box-sizing: border-box;
+}
+.modal-field input:focus, .modal-field select:focus { border-color: #7748FF; }
+
+.modal-actions { display: flex; gap: .7rem; margin-top: 1.2rem; }
+.modal-btn {
+  flex: 1; padding: .65rem; border-radius: 12px; border: none;
+  font-size: .88rem; font-weight: 700; font-family: 'Poppins', sans-serif;
+  cursor: pointer; transition: all .2s;
+}
+.modal-btn-primary { background: #7748FF; color: #fff; }
+.modal-btn-primary:hover { background: #5c2ee0; }
+.modal-btn-cancel { background: #f0ecff; color: #7748FF; }
+.modal-btn-cancel:hover { background: #e0d8ff; }
+
+.cred-box {
+  background: #f9f7ff; border: 1.5px solid #ede9fe; border-radius: 12px;
+  padding: .9rem 1.1rem; margin-bottom: .6rem;
+}
+.cred-box label { font-size: .72rem; color: #999; font-weight: 600; display: block; margin-bottom: .2rem; }
+.cred-box .cred-value {
+  font-size: 1rem; font-weight: 700; color: #1a1a2e;
+  font-family: 'Courier New', monospace; user-select: all;
+}
+
+/* Webinar detail modal */
+.wdm-row { display: flex; align-items: center; gap: .6rem; margin-bottom: .7rem; }
+.wdm-row i { font-size: 1rem; color: #7748FF; width: 20px; text-align: center; flex-shrink: 0; }
+.wdm-row span { font-size: .9rem; color: #333; }
+.wdm-row .wdm-label { font-size: .72rem; color: #999; display: block; }
+
+/* Badge modal */
+.badge-modal-medal { display: flex; justify-content: center; margin-bottom: .8rem; }
+.badge-modal-medal svg { width: 90px; height: 110px; }
+
+/* Empty */
+.empty-state {
+  background: rgba(255,255,255,.15); border-radius: 20px;
+  padding: 3rem; text-align: center; color: rgba(255,255,255,.75);
+}
+.empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: .6; }
+
+footer { background: linear-gradient(180deg, #5a2ee0, #7748FF) !important; color: rgba(255,255,255,.75) !important; }
+footer h5 { color: #fff !important; }
+footer ul li a { color: rgba(255,255,255,.68) !important; }
+
+@media (max-width: 900px) {
+  .child-card { grid-template-columns: 1fr; }
+  .child-right { border-left: none; border-top: 1px solid #f0ecff; overflow: visible !important; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-blob-wrap">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
+</div>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">Мои дети</h1>
+    <div class="header-btns">
+      <a href="{% url 'profile_edit' %}" class="edit-profile-btn">
+        <i class="bi bi-pencil"></i> Мой профиль
+      </a>
+      <button class="add-child-btn" onclick="openAddChildModal()">
+        <i class="bi bi-person-plus-fill"></i> Добавить ребёнка
+      </button>
+    </div>
+  </div>
+
+  {% if children %}
+  <div class="children-grid">
+    {% for item in children %}
+    {% with student=item.student stats=item.stats badges=item.badges enrollments=item.enrollments avg=item.avg_completion webinars=item.webinars wdates=item.webinar_dates_json %}
+    <div class="child-card">
+
+      {# ===== LEFT: Info + Courses ===== #}
+      <div class="child-left">
+        <div class="child-header">
+          <div class="child-avatar">
+            {% if student.user.avatar %}
+              <img src="{{ student.user.avatar.url }}" alt="">
+            {% else %}
+              <i class="bi bi-person-fill child-avatar-placeholder"></i>
+            {% endif %}
+          </div>
+          <div class="child-name-block">
+            <h3>{{ student.user.get_full_name }}</h3>
+            <div class="child-sub">{{ student.education_level }}{% if student.study_status %} · {{ student.study_status }}{% endif %}</div>
+          </div>
+          <a href="{% url 'parent_child_edit' student.user.pk %}" class="child-edit-btn">
+            <i class="bi bi-pencil"></i> Изменить
+          </a>
+          <button class="child-creds-btn" onclick="showCredentials({{ student.user.pk }})">
+            <i class="bi bi-key"></i> Логин
+          </button>
+        </div>
+
+        <div class="child-progress-row">
+          <div class="child-pbar">
+            <div class="child-pfill" style="width:{{ avg }}%"></div>
+          </div>
+          <div class="child-plabel">{{ avg }}% курсов пройдено</div>
+        </div>
+
+        <div class="child-stats">
+          <div class="cstat">
+            <div class="v">{{ stats.quizzes_passed }}</div>
+            <div class="l">Тестов</div>
+          </div>
+          <div class="cstat-div"></div>
+          <div class="cstat">
+            <div class="v">{{ stats.best_time_display }}</div>
+            <div class="l">Лучшее время</div>
+          </div>
+          <div class="cstat-div"></div>
+          <div class="cstat">
+            <div class="v">{{ stats.correct_answers }}</div>
+            <div class="l">Правильных</div>
+          </div>
+        </div>
+
+        <div class="child-section-label">Курсы</div>
+        <div class="child-courses">
+          {% for e in enrollments|slice:":5" %}
+          <div class="child-course-item">
+            <div class="child-course-img">
+              {% if e.course.image %}
+                <img src="{{ e.course.image.url }}" alt="">
+              {% else %}
+                <i class="bi bi-book-fill"></i>
+              {% endif %}
+            </div>
+            <div class="child-course-info">
+              <div class="child-course-name">{{ e.course.name }}</div>
+              <div class="child-course-meta">
+                <span><i class="bi bi-collection-play"></i> {{ e.lessons_count }} ур.</span>
+                {% if e.course.category %}<span>{{ e.course.category.name }}</span>{% endif %}
+              </div>
+              <div class="child-course-pbar">
+                <div class="child-course-pfill" style="width:{{ e.progress_percent|default:0 }}%"></div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <p style="color:#ccc;font-size:.8rem">Не записан на курсы</p>
+          {% endfor %}
+        </div>
+        {% if enrollments|length > 5 %}
+        <a href="{% url 'parent_child_courses' student.user.id %}" class="view-all-link">
+          Все курсы <i class="bi bi-arrow-right"></i>
+        </a>
+        {% endif %}
+      </div>
+
+      {# ===== RIGHT: Achievements + Calendar + Webinars ===== #}
+      <div class="child-right">
+        <div class="child-section-label">Достижения</div>
+        {% if badges %}
+        <div class="badges-scroll">
+          {% for sb in badges %}
+          {% with b=sb.badge %}
+          <div class="medal-wrap"
+               onclick="showBadgeModal(this)"
+               data-name="{{ b.display_name }}"
+               data-desc="{{ b.display_desc }}"
+               data-date="{{ sb.awarded_at|date:'d.m.Y' }}"
+               data-ca="{{ b.color_a }}"
+               data-cb="{{ b.color_b }}">
+            <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="20" y="0" width="8" height="30" fill="{{ b.color_a }}"/>
+              <rect x="28" y="0" width="8" height="30" fill="#fff"/>
+              <rect x="36" y="0" width="8" height="30" fill="{{ b.color_b }}"/>
+              <circle cx="32" cy="54" r="22" fill="{{ b.color_a }}"/>
+              <circle cx="32" cy="54" r="18" fill="{{ b.color_b }}"/>
+              <polygon points="32,38 34.5,47 44,47 36.7,52.5 39.5,62 32,56.5 24.5,62 27.3,52.5 20,47 29.5,47" fill="#FFD700" stroke="#e6b800" stroke-width="0.5"/>
+            </svg>
+{#            limit to 15 symbols#}
+            <span class="medal-name">{{ b.display_name|truncatechars:15 }}</span>
+          </div>
+          {% endwith %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="color:#ccc;font-size:.8rem">Пока нет достижений</p>
+        {% endif %}
+
+        {# Calendar #}
+        <div class="child-calendar">
+          <div class="child-section-label" style="margin-top:.8rem">Календарь</div>
+          <div class="cal-header">
+            <span class="cal-month" id="cal-month-{{ forloop.counter }}"></span>
+            <div class="cal-nav">
+              <button onclick="calNav({{ forloop.counter }}, -1)"><i class="bi bi-chevron-left"></i></button>
+              <button onclick="calNav({{ forloop.counter }}, 1)"><i class="bi bi-chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="cal-grid" id="cal-grid-{{ forloop.counter }}">
+            {% for d in "ПВСЧПСВ" %}<div class="cal-dow">{{ d }}</div>{% endfor %}
+          </div>
+        </div>
+
+        {# Webinar list #}
+        <div class="child-webinars">
+          <div class="child-section-label" style="margin-top:.6rem">Вебинары</div>
+          <div class="webinar-list-parent">
+            {% for w in webinars %}
+            <div class="webinar-item-p"
+                 onclick="showWebinarModal(this)"
+                 data-course="{{ w.course.name }}"
+                 data-date="{{ w.date|date:'d.m.Y' }}"
+                 data-time="{{ w.start_time|time:'H:i' }} — {{ w.end_time|time:'H:i' }}"
+                 data-mentor="{% if w.mentor %}{{ w.mentor.user.get_full_name }}{% else %}—{% endif %}"
+                 data-format="{{ w.lesson_format }}"
+                 data-location="{{ w.location }}"
+                 data-desc="{{ w.description }}">
+              <div class="webinar-date-box">
+                <div class="wd-day">{{ w.date|date:"d" }}</div>
+                <div class="wd-mon">{{ w.date|date:"M" }}</div>
+              </div>
+              <div class="webinar-info">
+                <div class="wi-course">{{ w.course.name }}</div>
+                <div class="wi-meta">
+                  {{ w.start_time|time:"H:i" }}–{{ w.end_time|time:"H:i" }}
+                  {% if w.mentor %} · {{ w.mentor.user.get_full_name }}{% endif %}
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <p style="color:#ccc;font-size:.78rem">Нет предстоящих вебинаров</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    {# Store webinar dates for this child's calendar #}
+    <script>window['calDates_{{ forloop.counter }}'] = {{ wdates|safe }};</script>
+
+    {% endwith %}
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div><i class="bi bi-people"></i></div>
+    <p>У вас ещё нет привязанных детей.<br>Нажмите «Добавить ребёнка» чтобы создать аккаунт.</p>
+  </div>
+  {% endif %}
+</div>
+<div class="modal-overlay" id="dayWebinarsOverlay" onclick="if(event.target===this)closeDayWebinarsModal()">
+  <div class="modal-box">
+    <h3 id="dwmDateTitle">Вебинары на сегодня</h3>
+    <div id="dwmList" class="webinar-list-parent">
+      </div>
+    <div class="modal-actions" style="margin-top: 1.2rem;">
+      <button class="modal-btn modal-btn-primary" onclick="closeDayWebinarsModal()" style="flex:1">Закрыть</button>
+    </div>
+  </div>
+</div>
+{# ===== ADD CHILD MODAL ===== #}
+<div class="modal-overlay" id="addChildOverlay" onclick="if(event.target===this)closeAddChildModal()">
+  <div class="modal-box" id="addChildModal">
+    <h3>Добавить ребёнка</h3>
+    <div id="addChildForm">
+      <div class="modal-field">
+        <label>Имя</label>
+        <input type="text" id="childFirstName" placeholder="Введите имя">
+      </div>
+      <div class="modal-field">
+        <label>Фамилия</label>
+        <input type="text" id="childLastName" placeholder="Введите фамилию">
+      </div>
+      <div class="modal-field">
+        <label>Дата рождения</label>
+        <input type="date" id="childBirthDate">
+      </div>
+      <div class="modal-field">
+        <label>Уровень образования</label>
+        <select id="childEduLevel">
+          <option value="Начальная школа">Начальная школа</option>
+          <option value="Средняя школа">Средняя школа</option>
+          <option value="Старшая школа">Старшая школа</option>
+        </select>
+      </div>
+      <div id="addChildError" style="color:#ef4444;font-size:.82rem;display:none;margin-bottom:.5rem"></div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeAddChildModal()">Отмена</button>
+        <button class="modal-btn modal-btn-primary" id="addChildSubmit" onclick="submitAddChild()">Создать</button>
+      </div>
+    </div>
+    <div id="addChildResult" style="display:none">
+      <p style="text-align:center;color:#22c55e;font-size:.9rem;margin-bottom:1rem">
+        <i class="bi bi-check-circle-fill"></i> Аккаунт создан!
+      </p>
+      <div class="cred-box">
+        <label>Логин</label>
+        <div class="cred-value" id="resultUsername"></div>
+      </div>
+      <div class="cred-box">
+        <label>Пароль</label>
+        <div class="cred-value" id="resultPassword"></div>
+      </div>
+      <p style="font-size:.75rem;color:#999;text-align:center;margin-top:.8rem">
+        Сохраните данные. Их можно посмотреть позже по кнопке «Логин» в карточке ребёнка.
+      </p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-primary" onclick="location.reload()" style="flex:1">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ===== CREDENTIALS MODAL ===== #}
+<div class="modal-overlay" id="credsOverlay" onclick="if(event.target===this)closeCredsModal()">
+  <div class="modal-box">
+    <h3 id="credsName">Данные для входа</h3>
+    <div class="cred-box">
+      <label>Логин</label>
+      <div class="cred-value" id="credsUsername">...</div>
+    </div>
+    <div class="cred-box">
+      <label>Пароль</label>
+      <div class="cred-value" id="credsPassword">...</div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-primary" onclick="closeCredsModal()" style="flex:1">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+{# ===== WEBINAR DETAIL MODAL ===== #}
+<div class="modal-overlay" id="webinarOverlay" onclick="if(event.target===this)closeWebinarModal()">
+  <div class="modal-box">
+    <h3 id="wmTitle">Вебинар</h3>
+    <div class="wdm-row"><i class="bi bi-book"></i><span id="wmCourse"></span></div>
+    <div class="wdm-row"><i class="bi bi-calendar3"></i><span id="wmDate"></span></div>
+    <div class="wdm-row"><i class="bi bi-clock"></i><span id="wmTime"></span></div>
+    <div class="wdm-row"><i class="bi bi-person"></i><span id="wmMentor"></span></div>
+    <div class="wdm-row"><i class="bi bi-camera-video"></i><span id="wmFormat"></span></div>
+    <div class="wdm-row" id="wmLocationRow" style="display:none"><i class="bi bi-link-45deg"></i><span id="wmLocation"></span></div>
+    <div class="wdm-row" id="wmDescRow" style="display:none"><i class="bi bi-text-paragraph"></i><span id="wmDesc"></span></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-primary" onclick="closeWebinarModal()" style="flex:1">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+{# ===== BADGE DETAIL MODAL ===== #}
+<div class="modal-overlay" id="badgeOverlay" onclick="if(event.target===this)closeBadgeModal()">
+  <div class="modal-box">
+    <div class="badge-modal-medal">
+      <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect id="bm-r1" x="20" y="0" width="8" height="30"/>
+        <rect x="28" y="0" width="8" height="30" fill="#fff"/>
+        <rect id="bm-r2" x="36" y="0" width="8" height="30"/>
+        <circle id="bm-c1" cx="32" cy="54" r="22"/>
+        <circle id="bm-c2" cx="32" cy="54" r="18"/>
+        <polygon points="32,38 34.5,47 44,47 36.7,52.5 39.5,62 32,56.5 24.5,62 27.3,52.5 20,47 29.5,47" fill="#FFD700" stroke="#e6b800" stroke-width="0.5"/>
+      </svg>
+    </div>
+    <h3 id="badgeModalName"></h3>
+    <p id="badgeModalDesc" style="text-align:center;color:#666;font-size:.9rem"></p>
+    <p id="badgeModalDate" style="text-align:center;color:#aaa;font-size:.78rem;margin-top:.3rem"></p>
+    <div class="modal-actions" style="margin-top:1rem">
+      <button class="modal-btn modal-btn-primary" onclick="closeBadgeModal()" style="flex:1">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function getCookie(n){var m=document.cookie.match('(^|;)\\s*'+n+'\\s*=\\s*([^;]+)');return m?m.pop():'';}
+
+/* ── Add child ── */
+function openAddChildModal(){
+  document.getElementById('addChildForm').style.display='';
+  document.getElementById('addChildResult').style.display='none';
+  document.getElementById('addChildError').style.display='none';
+  document.getElementById('childFirstName').value='';
+  document.getElementById('childLastName').value='';
+  document.getElementById('childBirthDate').value='';
+  document.getElementById('addChildOverlay').classList.add('active');
+}
+function closeAddChildModal(){document.getElementById('addChildOverlay').classList.remove('active');}
+function submitAddChild(){
+  var btn=document.getElementById('addChildSubmit');
+  btn.disabled=true; btn.textContent='Создаём...';
+  var err=document.getElementById('addChildError'); err.style.display='none';
+  var data={
+    first_name:document.getElementById('childFirstName').value,
+    last_name:document.getElementById('childLastName').value,
+    birth_date:document.getElementById('childBirthDate').value,
+    education_level:document.getElementById('childEduLevel').value
+  };
+  fetch("{% url 'parent_add_child' %}",{
+    method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    body:JSON.stringify(data)
+  }).then(r=>r.json()).then(res=>{
+    if(res.ok){
+      document.getElementById('addChildForm').style.display='none';
+      document.getElementById('resultUsername').textContent=res.child.username;
+      document.getElementById('resultPassword').textContent=res.child.password;
+      document.getElementById('addChildResult').style.display='';
+    } else { err.textContent=res.error||'Ошибка'; err.style.display=''; btn.disabled=false; btn.textContent='Создать'; }
+  }).catch(()=>{ err.textContent='Ошибка сети'; err.style.display=''; btn.disabled=false; btn.textContent='Создать'; });
+}
+
+/* ── Credentials ── */
+function showCredentials(id){
+  document.getElementById('credsUsername').textContent='...';
+  document.getElementById('credsPassword').textContent='...';
+  document.getElementById('credsName').textContent='Данные для входа';
+  document.getElementById('credsOverlay').classList.add('active');
+  fetch('/students/parent/children/'+id+'/credentials/').then(r=>r.json()).then(res=>{
+    if(res.ok){
+      document.getElementById('credsName').textContent=res.name;
+      document.getElementById('credsUsername').textContent=res.username;
+      document.getElementById('credsPassword').textContent=res.password;
+    }
+  });
+}
+function closeCredsModal(){document.getElementById('credsOverlay').classList.remove('active');}
+
+/* ── Webinar modal ── */
+function showWebinarModal(el){
+  document.getElementById('wmTitle').textContent=el.dataset.format+': '+el.dataset.course;
+  document.getElementById('wmCourse').textContent=el.dataset.course;
+  document.getElementById('wmDate').textContent=el.dataset.date;
+  document.getElementById('wmTime').textContent=el.dataset.time;
+  document.getElementById('wmMentor').textContent=el.dataset.mentor;
+  document.getElementById('wmFormat').textContent=el.dataset.format;
+  var loc=el.dataset.location;
+  if(loc){document.getElementById('wmLocation').textContent=loc;document.getElementById('wmLocationRow').style.display='';}
+  else{document.getElementById('wmLocationRow').style.display='none';}
+  var desc=el.dataset.desc;
+  if(desc){document.getElementById('wmDesc').textContent=desc;document.getElementById('wmDescRow').style.display='';}
+  else{document.getElementById('wmDescRow').style.display='none';}
+  document.getElementById('webinarOverlay').classList.add('active');
+}
+function closeWebinarModal(){document.getElementById('webinarOverlay').classList.remove('active');}
+
+/* ── Badge modal ── */
+function showBadgeModal(el){
+  var ca=el.dataset.ca, cb=el.dataset.cb;
+  document.getElementById('bm-r1').setAttribute('fill',ca);
+  document.getElementById('bm-r2').setAttribute('fill',cb);
+  document.getElementById('bm-c1').setAttribute('fill',ca);
+  document.getElementById('bm-c2').setAttribute('fill',cb);
+  document.getElementById('badgeModalName').textContent=el.dataset.name;
+  document.getElementById('badgeModalDesc').textContent=el.dataset.desc;
+  document.getElementById('badgeModalDate').textContent='Получено: '+el.dataset.date;
+  document.getElementById('badgeOverlay').classList.add('active');
+}
+function closeBadgeModal(){document.getElementById('badgeOverlay').classList.remove('active');}
+
+/* ── Calendars ── */
+var calStates = {};
+var monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+var now = new Date();
+
+function renderCal(idx) {
+  var st = calStates[idx];
+  if (!st) return;
+  document.getElementById('cal-month-' + idx).textContent = monthNames[st.month] + ' ' + st.year;
+  var grid = document.getElementById('cal-grid-' + idx);
+  while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+  var first = new Date(st.year, st.month, 1).getDay();
+  var startOffset = (first + 6) % 7;
+  var daysInMonth = new Date(st.year, st.month + 1, 0).getDate();
+  var daysInPrev = new Date(st.year, st.month, 0).getDate();
+
+  // Пустые дни прошлого месяца
+  for (var i = 0; i < startOffset; i++) {
+    var d = document.createElement('div');
+    d.className = 'cal-day other-month';
+    d.textContent = daysInPrev - startOffset + 1 + i;
+    grid.appendChild(d);
+  }
+
+  // Дни текущего месяца
+  for (var day = 1; day <= daysInMonth; day++) {
+    var d = document.createElement('div');
+    d.className = 'cal-day';
+    d.textContent = day;
+
+    // Формируем ключ даты YYYY-MM-DD
+    var key = st.year + '-' + String(st.month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+
+    // Если есть вебинары, добавляем точку и делаем кликабельным
+    if (st.dates.indexOf(key) !== -1) {
+      d.classList.add('has-event');
+      // Добавляем обработчик клика только на дни с событиями
+      d.onclick = (function(k, index) {
+        return function() { showDayWebinars(index, k); };
+      })(key, idx);
+    }
+
+    if (st.year === now.getFullYear() && st.month === now.getMonth() && day === now.getDate()) {
+      d.classList.add('today');
+    }
+    grid.appendChild(d);
+  }
+}
+
+// Показ вебинаров конкретного дня
+function showDayWebinars(childIdx, dateStr) {
+  // dateStr приходит как 2026-04-01, а в data-date у тебя d.m.Y (01.04.2026)
+  // Конвертируем формат для сравнения
+  const parts = dateStr.split('-');
+  const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
+
+  const container = document.getElementById('dwmList');
+  container.innerHTML = ''; // Очищаем список
+  document.getElementById('dwmDateTitle').textContent = 'Вебинары ' + formattedDate;
+
+  // Ищем все блоки вебинаров в карточке этого ребенка
+  // Берем n-ую карточку child-card (индекс childIdx)
+  const childCard = document.querySelectorAll('.child-card')[childIdx - 1];
+  const webinars = childCard.querySelectorAll('.webinar-item-p');
+  let found = 0;
+
+  webinars.forEach(web => {
+    if (web.dataset.date === formattedDate) {
+      // Клонируем элемент, чтобы сохранить стили, но убираем лишнее
+      const clone = web.cloneNode(true);
+      // При клике на вебинар внутри списка открываем его детальное описание
+      clone.onclick = function() { showWebinarModal(web); };
+      container.appendChild(clone);
+      found++;
+    }
+  });
+
+  if (found > 0) {
+    document.getElementById('dayWebinarsOverlay').classList.add('active');
+  }
+}
+
+function closeDayWebinarsModal() {
+  document.getElementById('dayWebinarsOverlay').classList.remove('active');
+}
+
+function calNav(idx, dir) {
+  var st = calStates[idx];
+  st.month += dir;
+  if (st.month < 0) { st.month = 11; st.year--; }
+  if (st.month > 11) { st.month = 0; st.year++; }
+  renderCal(idx);
+}
+
+// Init all calendars
+document.addEventListener('DOMContentLoaded', function() {
+  var idx = 1;
+  while (document.getElementById('cal-grid-' + idx)) {
+    calStates[idx] = {
+      year: now.getFullYear(),
+      month: now.getMonth(),
+      dates: window['calDates_' + idx] || []
+    };
+    renderCal(idx);
+    idx++;
+  }
+});
+</script>
+
+{% endblock %}

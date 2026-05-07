@@ -1,0 +1,320 @@
+{% extends "base_template.html" %}
+{% load static %}
+{% block title %}Услуги — EduPlatform{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #f6f4fe; }
+/* Hero */
+.srv-hero {
+  background: linear-gradient(135deg, #7748FF 0%, #5c2ee0 100%);
+  padding: 10rem 0 5rem; position: relative; overflow: hidden; text-align: center;
+}
+.srv-hero::before {
+  content: ''; position: absolute; width: 500px; height: 500px;
+  background: rgba(255,255,255,.08); border-radius: 50%;
+  top: -120px; right: -80px;
+}
+.srv-hero::after {
+  content: ''; position: absolute; width: 350px; height: 350px;
+  background: rgba(255,255,255,.06); border-radius: 50%;
+  bottom: -80px; left: -60px;
+}
+.srv-hero h1 {
+  font-size: 3rem; font-weight: 800; color: #fff; margin-bottom: .8rem;
+  position: relative; z-index: 1;
+}
+.srv-hero p {
+  font-size: 1.15rem; color: rgba(255,255,255,.75); max-width: 640px;
+  margin: 0 auto; line-height: 1.7; position: relative; z-index: 1;
+}
+
+.srv-wrap { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+/* How it works - steps */
+.steps-section { margin-top: -3rem; position: relative; z-index: 2; margin-bottom: 4rem; }
+.steps-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem;
+}
+.step-box {
+  background: #fff; border-radius: 18px; padding: 2rem 1.5rem; text-align: center;
+  box-shadow: 0 8px 30px rgba(40,0,120,.08); position: relative;
+}
+.step-num {
+  width: 40px; height: 40px; border-radius: 12px; margin: 0 auto .8rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, #7748FF, #a78bff);
+}
+.step-box h3 { font-size: .95rem; font-weight: 700; color: #1a1a2e; margin-bottom: .3rem; }
+.step-box p { font-size: .8rem; color: #999; line-height: 1.5; margin: 0; }
+.step-arrow {
+  display: none; position: absolute; right: -18px; top: 50%;
+  transform: translateY(-50%); color: #c4b0ff; font-size: 1.2rem; z-index: 3;
+}
+@media (min-width: 801px) {
+  .step-box:not(:last-child) .step-arrow { display: block; }
+}
+
+/* Main services */
+.services-section { margin-bottom: 4rem; }
+.services-title {
+  text-align: center; font-size: 2rem; font-weight: 800; color: #1a1a2e;
+  margin-bottom: .5rem;
+}
+.services-sub {
+  text-align: center; font-size: 1rem; color: #999; margin-bottom: 2.5rem;
+}
+.services-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+}
+.srv-card {
+  background: #fff; border-radius: 20px; padding: 2rem 1.8rem;
+  box-shadow: 0 4px 24px rgba(40,0,120,.06);
+  transition: transform .2s, box-shadow .2s;
+  border-top: 4px solid transparent; position: relative;
+}
+.srv-card:hover {
+  transform: translateY(-4px); box-shadow: 0 10px 35px rgba(40,0,120,.12);
+}
+.srv-card.sc-purple { border-top-color: #7748FF; }
+.srv-card.sc-blue   { border-top-color: #3b82f6; }
+.srv-card.sc-green  { border-top-color: #22c55e; }
+.srv-card.sc-orange { border-top-color: #f59e0b; }
+.srv-card.sc-pink   { border-top-color: #ec4899; }
+.srv-card.sc-indigo { border-top-color: #6366f1; }
+.srv-icon {
+  width: 56px; height: 56px; border-radius: 14px; margin-bottom: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; color: #fff;
+}
+.si-purple { background: linear-gradient(135deg, #7748FF, #a78bff); }
+.si-blue   { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+.si-green  { background: linear-gradient(135deg, #22c55e, #4ade80); }
+.si-orange { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.si-pink   { background: linear-gradient(135deg, #ec4899, #f472b6); }
+.si-indigo { background: linear-gradient(135deg, #6366f1, #818cf8); }
+.srv-card h3 { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; margin-bottom: .4rem; }
+.srv-card p { font-size: .85rem; color: #888; line-height: 1.6; margin: 0; }
+
+/* Pricing / Plans */
+.plans-section { margin-bottom: 4rem; }
+.plans-title {
+  text-align: center; font-size: 2rem; font-weight: 800; color: #1a1a2e;
+  margin-bottom: .5rem;
+}
+.plans-sub {
+  text-align: center; font-size: 1rem; color: #999; margin-bottom: 2.5rem;
+}
+.plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.plan-card {
+  background: #fff; border-radius: 20px; padding: 2.2rem 1.8rem;
+  box-shadow: 0 4px 24px rgba(40,0,120,.06); text-align: center;
+  transition: transform .2s, box-shadow .2s; position: relative;
+}
+.plan-card:hover { transform: translateY(-4px); box-shadow: 0 10px 35px rgba(40,0,120,.12); }
+.plan-card.featured {
+  background: linear-gradient(135deg, #7748FF, #5c2ee0); color: #fff;
+  box-shadow: 0 8px 40px rgba(119,72,255,.25);
+}
+.plan-badge {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: #f59e0b; color: #fff; font-size: .7rem; font-weight: 700;
+  padding: .25rem .8rem; border-radius: 20px; white-space: nowrap;
+}
+.plan-name { font-size: 1.1rem; font-weight: 700; margin-bottom: .3rem; }
+.plan-card:not(.featured) .plan-name { color: #1a1a2e; }
+.plan-price { font-size: 2.2rem; font-weight: 800; margin-bottom: .2rem; }
+.plan-card:not(.featured) .plan-price { color: #7748FF; }
+.plan-period { font-size: .8rem; opacity: .6; margin-bottom: 1.2rem; }
+.plan-features { list-style: none; padding: 0; margin: 0 0 1.5rem; text-align: left; }
+.plan-features li {
+  font-size: .85rem; padding: .35rem 0;
+  display: flex; align-items: center; gap: .5rem;
+}
+.plan-card:not(.featured) .plan-features li { color: #666; }
+.plan-features li i { font-size: .75rem; }
+.plan-card:not(.featured) .plan-features li i { color: #22c55e; }
+.plan-features li i.text-muted { color: #ccc !important; }
+.plan-btn {
+  display: inline-block; padding: .7rem 1.8rem; border-radius: 12px;
+  font-weight: 700; font-size: .9rem; text-decoration: none;
+  transition: transform .2s, box-shadow .2s;
+  font-family: 'Poppins', sans-serif;
+}
+.plan-card:not(.featured) .plan-btn {
+  background: #f5f0ff; color: #7748FF;
+}
+.plan-card:not(.featured) .plan-btn:hover {
+  transform: translateY(-2px); box-shadow: 0 4px 16px rgba(119,72,255,.15);
+}
+.plan-card.featured .plan-btn {
+  background: #fff; color: #7748FF;
+}
+.plan-card.featured .plan-btn:hover {
+  transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.15);
+}
+
+/* CTA */
+.srv-cta {
+  background: linear-gradient(135deg, #7748FF, #5c2ee0); border-radius: 24px;
+  padding: 3.5rem 3rem; text-align: center; margin-bottom: 4rem;
+  position: relative; overflow: hidden;
+}
+.srv-cta::before {
+  content: ''; position: absolute; width: 300px; height: 300px;
+  background: rgba(255,255,255,.08); border-radius: 50%;
+  top: -80px; right: -60px;
+}
+.srv-cta h2 { font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: .5rem; position: relative; z-index: 1; }
+.srv-cta p { color: rgba(255,255,255,.7); font-size: 1rem; margin-bottom: 1.5rem; position: relative; z-index: 1; }
+.srv-cta-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: #fff; color: #7748FF; font-weight: 700; font-size: 1rem;
+  padding: .8rem 2rem; border-radius: 14px; text-decoration: none;
+  transition: transform .2s, box-shadow .2s; position: relative; z-index: 1;
+  font-family: 'Poppins', sans-serif;
+}
+.srv-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.15); color: #5c2ee0; }
+
+@media (max-width: 800px) {
+  .steps-row { grid-template-columns: repeat(2, 1fr); }
+  .services-grid { grid-template-columns: 1fr; }
+  .plans-grid { grid-template-columns: 1fr; }
+  .srv-hero h1 { font-size: 2rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="srv-hero">
+  <h1>Наши услуги</h1>
+  <p>Комплексное онлайн-обучение для школьников с индивидуальным подходом, опытными наставниками и поддержкой на каждом этапе</p>
+</section>
+
+<div class="srv-wrap">
+
+  <!-- How it works -->
+  <div class="steps-section">
+    <div class="steps-row">
+      <div class="step-box">
+        <div class="step-num">1</div>
+        <h3>Регистрация</h3>
+        <p>Создайте аккаунт ученика или родителя за 1 минуту</p>
+        <span class="step-arrow"><i class="bi bi-chevron-right"></i></span>
+      </div>
+      <div class="step-box">
+        <div class="step-num">2</div>
+        <h3>Тестирование</h3>
+        <p>Пройдите placement-тест для определения уровня</p>
+        <span class="step-arrow"><i class="bi bi-chevron-right"></i></span>
+      </div>
+      <div class="step-box">
+        <div class="step-num">3</div>
+        <h3>Траектория</h3>
+        <p>Получите персональный план обучения</p>
+        <span class="step-arrow"><i class="bi bi-chevron-right"></i></span>
+      </div>
+      <div class="step-box">
+        <div class="step-num">4</div>
+        <h3>Обучение</h3>
+        <p>Проходите курсы и достигайте целей</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services -->
+  <div class="services-section">
+    <h2 class="services-title">Что мы предлагаем</h2>
+    <p class="services-sub">Полный набор инструментов для эффективного обучения</p>
+    <div class="services-grid">
+      <div class="srv-card sc-purple">
+        <div class="srv-icon si-purple"><i class="bi bi-clipboard2-data-fill"></i></div>
+        <h3>Входное тестирование</h3>
+        <p>Placement-тест определяет склонности и уровень подготовки ученика, чтобы подобрать оптимальные курсы и выстроить персональную траекторию обучения.</p>
+      </div>
+      <div class="srv-card sc-blue">
+        <div class="srv-icon si-blue"><i class="bi bi-signpost-split-fill"></i></div>
+        <h3>Индивидуальные траектории</h3>
+        <p>На основе результатов тестирования автоматически формируется последовательность курсов с учётом интересов, уровня и целей ученика.</p>
+      </div>
+      <div class="srv-card sc-green">
+        <div class="srv-icon si-green"><i class="bi bi-play-circle-fill"></i></div>
+        <h3>Интерактивные курсы</h3>
+        <p>Курсы из теоретических и тестовых блоков. Прогресс отслеживается в реальном времени, результаты доступны ученику и родителям.</p>
+      </div>
+      <div class="srv-card sc-orange">
+        <div class="srv-icon si-orange"><i class="bi bi-camera-video-fill"></i></div>
+        <h3>Онлайн-вебинары</h3>
+        <p>Живые занятия с наставниками по видеосвязи. Расписание формируется индивидуально, ссылки доступны в личном кабинете.</p>
+      </div>
+      <div class="srv-card sc-pink">
+        <div class="srv-icon si-pink"><i class="bi bi-people-fill"></i></div>
+        <h3>Наставничество</h3>
+        <p>Каждому курсу назначается опытный ментор, который адаптирует программу и помогает ученику достигать целей.</p>
+      </div>
+      <div class="srv-card sc-indigo">
+        <div class="srv-icon si-indigo"><i class="bi bi-bar-chart-fill"></i></div>
+        <h3>Контроль для родителей</h3>
+        <p>Родители видят прогресс, достижения и расписание своих детей в специальном разделе личного кабинета.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plans -->
+  <div class="plans-section">
+    <h2 class="plans-title">Тарифные планы</h2>
+    <p class="plans-sub">Выберите подходящий вариант для вашего ребёнка</p>
+    <div class="plans-grid">
+      <div class="plan-card">
+        <div class="plan-name">Старт</div>
+        <div class="plan-price">Бесплатно</div>
+        <div class="plan-period">навсегда</div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-circle-fill"></i> Доступ к 5 курсам</li>
+          <li><i class="bi bi-check-circle-fill"></i> Входное тестирование</li>
+          <li><i class="bi bi-check-circle-fill"></i> Базовая аналитика</li>
+          <li><i class="bi bi-x-circle-fill text-muted"></i> Персональный ментор</li>
+          <li><i class="bi bi-x-circle-fill text-muted"></i> Вебинары</li>
+        </ul>
+        <a href="{% url 'register' %}" class="plan-btn">Начать</a>
+      </div>
+      <div class="plan-card featured">
+        <div class="plan-badge"><i class="bi bi-star-fill"></i> Популярный</div>
+        <div class="plan-name">Стандарт</div>
+        <div class="plan-price">990 ₽</div>
+        <div class="plan-period">в месяц</div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-circle-fill"></i> Все курсы платформы</li>
+          <li><i class="bi bi-check-circle-fill"></i> Индивидуальная траектория</li>
+          <li><i class="bi bi-check-circle-fill"></i> Полная аналитика</li>
+          <li><i class="bi bi-check-circle-fill"></i> Персональный ментор</li>
+          <li><i class="bi bi-x-circle-fill" style="opacity:.4"></i> Групповые вебинары</li>
+        </ul>
+        <a href="{% url 'register' %}" class="plan-btn">Выбрать</a>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">Премиум</div>
+        <div class="plan-price">2 490 ₽</div>
+        <div class="plan-period">в месяц</div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-circle-fill"></i> Все курсы платформы</li>
+          <li><i class="bi bi-check-circle-fill"></i> Индивидуальная траектория</li>
+          <li><i class="bi bi-check-circle-fill"></i> Расширенная аналитика</li>
+          <li><i class="bi bi-check-circle-fill"></i> Персональный ментор</li>
+          <li><i class="bi bi-check-circle-fill"></i> Личные вебинары</li>
+        </ul>
+        <a href="{% url 'register' %}" class="plan-btn">Выбрать</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="srv-cta">
+    <h2>Не знаете, какой тариф выбрать?</h2>
+    <p>Начните с бесплатного плана — вы всегда сможете перейти на расширенный</p>
+    <a href="{% url 'register' %}" class="srv-cta-btn"><i class="bi bi-rocket-takeoff-fill"></i> Попробовать бесплатно</a>
+  </div>
+
+</div>
+{% endblock %}

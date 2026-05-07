@@ -1,0 +1,275 @@
+{% load static %}
+{% load l10n %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}EduPlatform{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+  body { margin:0; padding:0; font-family:'Poppins',sans-serif; color:#1a1a2e; line-height:1.6; }
+  .container { max-width:1140px; margin:0 auto; padding:0 2rem; }
+  .site-header { position:absolute; top:0; width:100%; z-index:50; padding:1.6rem 0; }
+  .header-inner { display:flex; align-items:center; justify-content:space-between; }
+  .logo { color:#fff; font-weight:800; font-size:2rem; }
+  .nav { display:flex; gap:3rem; list-style:none; margin:0; padding:0; align-items:center; }
+  .nav a { color:#fff; font-size:1.3rem; text-decoration:none; font-weight:600; }
+  .contact-btn {
+    background:#130866; color:#fff !important; font-size:1.1rem !important;
+    padding:.5rem 1.4rem; border-radius:12px; text-decoration:none;
+    display:flex; align-items:center; transition:background .2s;
+  }
+  .contact-btn:hover { background:#1e0d8a; }
+  .nav-auth { display:flex; align-items:center; gap:.75rem; margin-left:1.2rem; }
+
+  /* Кнопка Войти — тихая, не перебивает Связаться */
+  .btn-login {
+    color: rgba(255,255,255,.62); font-size:.95rem; font-weight:500;
+    text-decoration:none; padding:.32rem .85rem;
+    border:1px solid rgba(255,255,255,.28); border-radius:10px;
+    transition:color .18s, border-color .18s, background .18s; white-space:nowrap;
+  }
+  .btn-login:hover { color:#fff; border-color:rgba(255,255,255,.55); background:rgba(255,255,255,.08); }
+
+  /* Триггер аккаунта */
+  .account-wrap   { position:relative; }
+  .account-btn {
+    display:flex; align-items:center; gap:.45rem;
+    background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.22);
+    border-radius:12px; padding:.32rem .85rem .32rem .42rem;
+    cursor:pointer; color:#fff; font-size:.88rem; font-weight:600;
+    font-family:'Poppins',sans-serif; transition:background .18s; white-space:nowrap;
+  }
+  .account-btn:hover { background:rgba(255,255,255,.22); }
+  .account-ava {
+    width:26px; height:26px; border-radius:7px; flex-shrink:0;
+    background:linear-gradient(135deg,#b08aff,#7748FF);
+    display:flex; align-items:center; justify-content:center;
+    font-size:.7rem; font-weight:800; color:#fff;
+    overflow:hidden;
+  }
+  .account-ava img {
+    width:100%; height:100%; object-fit:cover;
+  }
+
+  /* Выпадающее меню */
+  .account-menu {
+    display:none; flex-direction:column;
+    position:absolute; top:calc(100% + .45rem); right:0;
+    background:#fff; border-radius:16px;
+    box-shadow:0 8px 40px rgba(40,0,120,.18);
+    padding:.45rem; min-width:210px; z-index:1000;
+  }
+  .account-menu.open { display:flex; }
+  .am-head { padding:.55rem .75rem .4rem; border-bottom:1px solid #f0eeff; margin-bottom:.3rem; }
+  .am-name  { font-size:.88rem; font-weight:700; color:#1a1a2e; }
+  .am-role  { font-size:.7rem;  color:#bbb; }
+  .am-link, .am-logout {
+    display:flex; align-items:center; gap:.5rem;
+    padding:.5rem .75rem; border-radius:9px;
+    font-size:.86rem; font-weight:600; color:#374151;
+    text-decoration:none; background:none; border:none;
+    cursor:pointer; font-family:'Poppins',sans-serif;
+    width:100%; text-align:left; transition:background .14s, color .14s;
+  }
+  .am-link:hover    { background:#f5f0ff; color:#7748FF; }
+  .am-logout        { color:#ef4444; }
+  .am-logout:hover  { background:#fff0f0; color:#dc2626; }
+  .am-divider       { height:1px; background:#f0eeff; margin:.25rem .4rem; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'home' %}{% endif %}" class="logo" style="text-decoration:none;color:#fff;font-weight: 800;">EduPlatform</a>
+
+    <ul class="nav">
+      <li><a href="{% url 'home' %}">Главная</a></li>
+      <li><a href="{% url 'about' %}">О нас</a></li>
+      <li><a href="{% url 'services' %}">Услуги</a></li>
+      <li><a href="{% url 'all_courses' %}">Курсы</a></li>
+      <li><a href="{% url 'home' %}#contact-form" class="contact-btn">Связаться</a></li>
+    </ul>
+
+    <div class="nav-auth">
+      {% if user.is_authenticated %}
+        <div class="account-wrap" id="acWrap">
+          <button class="account-btn" onclick="toggleAcMenu(event)">
+            <div class="account-ava">
+              {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" alt="">
+              {% else %}
+                {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+              {% endif %}
+            </div>
+            {{ user.first_name }}
+            <i class="bi bi-chevron-down" style="font-size:.6rem;opacity:.65"></i>
+          </button>
+
+          <div class="account-menu" id="acMenu">
+            <div class="am-head">
+              <div class="am-name">{{ user.get_full_name }}</div>
+              <div class="am-role">
+                {% if user.role == 'student' %}Ученик
+                {% elif user.role == 'parent' %}Родитель
+                {% elif user.role == 'mentor' %}Ментор
+                {% elif user.role == 'admin' %}Администратор
+                {% endif %}
+              </div>
+            </div>
+
+            {% if user.role == 'student' %}
+              <a class="am-link" href="{% url 'student_dashboard' %}"><i class="bi bi-person-circle"></i> Личный кабинет</a>
+            {% elif user.role == 'parent' %}
+              <a class="am-link" href="{% url 'parent_dashboard' %}"><i class="bi bi-people-fill"></i> Мои дети</a>
+            {% elif user.role == 'mentor' %}
+              <a class="am-link" href="{% url 'mentor_dashboard' %}"><i class="bi bi-easel2-fill"></i> Кабинет ментора</a>
+            {% elif user.role == 'admin' %}
+              <a class="am-link" href="{% url 'admin_dashboard' %}"><i class="bi bi-shield-fill"></i> Панель админа</a>
+            {% endif %}
+
+            <a class="am-link" href="{% url 'all_courses' %}"><i class="bi bi-collection-play"></i> Курсы</a>
+            <div class="am-divider"></div>
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="am-logout"><i class="bi bi-box-arrow-right"></i> Выйти</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <a href="{% url 'login' %}" class="btn-login"><i class="bi bi-person"></i> Войти</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+{% block content %}{% endblock %}
+
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a href="{% url 'home' %}" class="footer-logo">EduPlatform</a>
+        <p class="footer-desc">Современная образовательная платформа для школьников с индивидуальными траекториями обучения</p>
+        <div class="footer-socials">
+          <a href="#" title="Telegram"><i class="bi bi-telegram"></i></a>
+          <a href="#" title="VK"><i class="bi bi-chat-fill"></i></a>
+          <a href="#" title="YouTube"><i class="bi bi-youtube"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Платформа</h5>
+        <ul>
+          <li><a href="{% url 'home' %}">Главная</a></li>
+          <li><a href="{% url 'all_courses' %}">Курсы</a></li>
+          <li><a href="{% url 'about' %}">О нас</a></li>
+          <li><a href="{% url 'services' %}">Услуги</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Поддержка</h5>
+        <ul>
+          <li><a href="{% url 'help' %}">Помощь</a></li>
+          <li><a href="{% url 'faq' %}">Часто задаваемые вопросы</a></li>
+          <li><a href="{% url 'privacy' %}">Политика конфиденциальности</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Контакты</h5>
+        <ul>
+          <li><i class="bi bi-envelope-fill" style="color:#a78bff;margin-right:.4rem"></i> info@eduplatform.ru</li>
+          <li><i class="bi bi-telephone-fill" style="color:#a78bff;margin-right:.4rem"></i> +7 (800) 123-45-67</li>
+          <li><i class="bi bi-geo-alt-fill" style="color:#a78bff;margin-right:.4rem"></i> Москва, Россия</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container footer-bottom-inner">
+      <span>© {% now 'Y' %} EduPlatform. Все права защищены.</span>
+      <span class="footer-bottom-links">
+        <a href="{% url 'terms' %}">Условия использования</a>
+        <a href="{% url 'privacy' %}">Конфиденциальность</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<style>
+.site-footer {
+background: linear-gradient(135deg, #502aae 0%, #5b2dd1 55%, #7748FF 100%);
+  color: rgba(255,255,255,.7); font-family: 'Poppins', sans-serif;
+}
+.footer-top { padding: 3.5rem 0 2.5rem; }
+.footer-grid {
+  display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 2.5rem;
+  max-width: 1100px; margin: 0 auto; padding: 0 2rem;
+}
+.footer-brand .footer-logo {
+  font-size: 1.4rem; font-weight: 800; color: #fff; text-decoration: none;
+  display: inline-block; margin-bottom: .6rem;
+}
+.footer-desc { font-size: .85rem; line-height: 1.6; color: rgba(255,255,255,.5); margin-bottom: 1rem; }
+.footer-socials { display: flex; gap: .6rem; }
+.footer-socials a {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(255,255,255,.08); display: flex;
+  align-items: center; justify-content: center;
+  color: rgba(255,255,255,.6); font-size: 1rem;
+  text-decoration: none; transition: background .2s, color .2s;
+}
+.footer-socials a:hover { background: #7748FF; color: #fff; }
+.footer-col h5 {
+  font-size: .9rem; font-weight: 700; color: #fff;
+  margin-bottom: .8rem; letter-spacing: .02em;
+}
+.footer-col ul { list-style: none; padding: 0; margin: 0; }
+.footer-col ul li {
+  font-size: .85rem; margin-bottom: .45rem;
+  display: flex; align-items: center;
+}
+.footer-col ul li a {
+  color: rgba(255,255,255,.55); text-decoration: none;
+  transition: color .18s;
+}
+.footer-col ul li a:hover { color: #a78bff; }
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,.08);
+  padding: 1.2rem 0;
+}
+.footer-bottom-inner {
+  max-width: 1100px; margin: 0 auto; padding: 0 2rem;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .78rem; color: rgba(255,255,255,.35);
+}
+.footer-bottom-links { display: flex; gap: 1.2rem; }
+.footer-bottom-links a { color: rgba(255,255,255,.35); text-decoration: none; transition: color .18s; }
+.footer-bottom-links a:hover { color: rgba(255,255,255,.6); }
+@media (max-width: 800px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-bottom-inner { flex-direction: column; gap: .5rem; text-align: center; }
+}
+@media (max-width: 500px) {
+  .footer-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleAcMenu(e) {
+  e.stopPropagation();
+  document.getElementById('acMenu').classList.toggle('open');
+}
+document.addEventListener('click', function() {
+  var m = document.getElementById('acMenu');
+  if (m) m.classList.remove('open');
+});
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

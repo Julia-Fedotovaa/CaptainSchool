@@ -1,0 +1,520 @@
+{% extends "base_template.html" %}
+{% load static %}
+{% load l10n %}
+{% block title %}Главная — EduPlatform{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── WAVE DIVIDERS ── */
+.wave-divider { display: block; width: 100%; line-height: 0; }
+.wave-divider svg { display: block; width: 100%; height: 80px; }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  background: linear-gradient(135deg, #7748FF 0%, #5c2ee0 100%);
+  color: #fff; padding: 10rem 0 3rem;
+  min-height: auto;
+}
+.hero::before {
+  content: ''; position: absolute; width: 600px; height: 600px;
+  background: rgba(255,255,255,.06); border-radius: 50%;
+  top: -150px; right: -100px;
+}
+.hero::after {
+  content: ''; position: absolute; width: 400px; height: 400px;
+  background: rgba(255,255,255,.04); border-radius: 50%;
+  bottom: 50px; left: -100px;
+}
+.hero-container {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 3rem; position: relative; z-index: 2; padding: 0;
+}
+.hero-text { flex: 1; max-width: 520px; }
+.hero-text h1 { font-size: 3rem; font-weight: 800; line-height: 1.2; margin-bottom: 1rem; }
+.hero-text p {
+  font-size: 1rem; color: rgba(255,255,255,.75);
+  max-width: 440px; margin-bottom: 1.8rem; line-height: 1.7;
+}
+.hero-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: #fff; color: #7748FF; font-weight: 700;
+  font-size: 1rem; padding: .8rem 2rem; border-radius: 14px;
+  text-decoration: none; transition: transform .2s, box-shadow .2s;
+  font-family: 'Poppins', sans-serif;
+}
+.hero-btn:hover {
+  transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.15); color: #5c2ee0;
+}
+.hero-image { flex-shrink: 0; position: relative; z-index: 2; }
+.hero-image img {
+  width: 420px; height: 420px; object-fit: cover;
+  border-radius: 50%; border: 6px solid rgba(255,255,255,.15);
+}
+.hero-badge {
+  position: absolute; background: #fff; border-radius: 14px;
+  padding: .5rem .9rem; display: flex; align-items: center; gap: .4rem;
+  box-shadow: 0 4px 20px rgba(40,0,120,.15);
+  font-size: .8rem; font-weight: 700; color: #1a1a2e; z-index: 3;
+}
+.hero-badge i { font-size: 1rem; color: #7748FF; }
+.hero-badge.hb-top { top: 30px; right: -20px; }
+.hero-badge.hb-bottom { bottom: 50px; left: -20px; }
+/* removed old hero-wave — using .wave-divider instead */
+
+/* ── STATS ── */
+.stats-section { padding: 0; margin-top: -3rem; position: relative; z-index: 5; }
+.stats-row { display: flex; justify-content: center; gap: 2rem; }
+.stat-card {
+  background: #fff; border-radius: 16px; padding: 1.2rem 2rem;
+  text-align: center; box-shadow: 0 6px 24px rgba(40,0,120,.1);
+  border: 2px solid #f0ecff; min-width: 160px; transition: transform .2s;
+}
+.stat-card:hover { transform: translateY(-3px); }
+.stat-icon {
+  width: 44px; height: 44px; border-radius: 12px; margin: 0 auto .5rem;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #7748FF, #a78bff);
+  color: #fff; font-size: 1.1rem;
+}
+.stat-card h3 { font-size: 1.5rem; font-weight: 800; color: #7748FF; margin: 0; }
+.stat-card p { font-size: .78rem; font-weight: 600; color: #999; margin: .1rem 0 0; }
+
+/* ── POPULAR COURSES ── */
+.popular-courses { padding: 4rem 0 5rem; text-align: center; }
+.section-title { font-size: 2.2rem; font-weight: 800; color: #1a1a2e; margin-bottom: .4rem; }
+.section-subtitle { font-size: 1rem; color: #999; margin-bottom: 3rem; }
+.course-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.8rem; }
+.course-card {
+  background: #fff; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 4px 20px rgba(40,0,120,.06);
+  transition: transform .2s, box-shadow .2s; text-align: left;
+}
+.course-card:hover { transform: translateY(-4px); box-shadow: 0 10px 35px rgba(40,0,120,.12); }
+.course-image { position: relative; }
+.course-card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+.course-category {
+  position: absolute; top: 10px; left: 10px;
+  background: #7748FF; color: #fff; padding: .3rem .7rem;
+  font-size: .72rem; font-weight: 600; border-radius: 8px;
+}
+.card-body { padding: 1.2rem 1.4rem; }
+.card-body h3 { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin: 0 0 .3rem; text-align: left; }
+.card-body p { font-size: .82rem; color: #888; line-height: 1.5; margin-bottom: .8rem; }
+.meta { display: flex; justify-content: space-between; align-items: center; }
+.lesson-icon {
+  width: 26px; height: 26px; background: #7748FF; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.lesson-icon i { color: #fff; font-size: 12px; margin-left: 1px; }
+.lessons-text { font-size: .82rem; font-weight: 600; color: #1a1a2e; }
+.rating {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #7748FF; color: #fff; padding: .2rem .55rem;
+  border-radius: 8px; font-size: .8rem; font-weight: 600;
+}
+.rating i { color: #ffc107; font-size: .7rem; }
+.rating span { color: #fff; }
+
+/* ── BENEFITS ── */
+.benefits-section {
+  padding: 5rem 0 3rem; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #7748FF 0%, #5c2ee0 100%); color: #fff;
+}
+.benefits-section::before {
+  content: ''; position: absolute; width: 400px; height: 400px;
+  background: rgba(255,255,255,.06); border-radius: 50%;
+  top: -100px; left: -80px;
+}
+.benefits-inner {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+  align-items: center; position: relative; z-index: 1;
+}
+.benefits-images { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.benefits-images img {
+  width: 100%; height: 160px; object-fit: cover;
+  border-radius: 16px; border: 3px solid rgba(255,255,255,.2);
+}
+.benefits-text h2 { font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; }
+.benefit-item { display: flex; align-items: flex-start; gap: .8rem; margin-bottom: 1.2rem; }
+.benefit-icon {
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  background: rgba(255,255,255,.15); display: flex;
+  align-items: center; justify-content: center; font-size: 1rem;
+}
+.benefit-item p { margin: 0; font-size: .9rem; color: rgba(255,255,255,.85); line-height: 1.6; }
+.benefit-item h4 { font-size: .95rem; font-weight: 700; margin: 0 0 .2rem; }
+
+/* ── BECOME MENTOR ── */
+.mentor-section { padding: 5rem 0; }
+.mentor-inner {
+  display: grid; grid-template-columns: 1.2fr 1fr; gap: 3rem; align-items: center;
+}
+.mentor-text h2 { font-size: 2rem; font-weight: 800; color: #1a1a2e; margin-bottom: .6rem; }
+.mentor-text p { font-size: .9rem; color: #888; line-height: 1.7; margin-bottom: 1.5rem; }
+.mentor-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: #7748FF; color: #fff; font-weight: 700; font-size: .9rem;
+  padding: .7rem 1.6rem; border-radius: 12px; text-decoration: none;
+  transition: transform .2s, box-shadow .2s; font-family: 'Poppins', sans-serif;
+}
+.mentor-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(119,72,255,.3); }
+.mentor-visual { display: flex; justify-content: center; align-items: center; }
+.mentor-visual img {
+  width: 320px; height: 320px; border-radius: 50%; object-fit: cover;
+  border: 5px solid #f0ecff; box-shadow: 0 10px 40px rgba(40,0,120,.1);
+}
+
+/* ── TESTIMONIALS ── */
+.testimonials-section { padding: 5rem 0; background: #faf8ff; text-align: center; }
+.testimonials-section .section-title { margin-bottom: .4rem; }
+.testimonials-section .section-subtitle { margin-bottom: 2.5rem; }
+.testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.testimonial-card {
+  background: #fff; border-radius: 18px; padding: 1.8rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(40,0,120,.06); text-align: left;
+  transition: transform .2s;
+}
+.testimonial-card:hover { transform: translateY(-3px); }
+.tc-header { display: flex; align-items: center; gap: .7rem; margin-bottom: .8rem; }
+.tc-avatar {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, #a78bff, #7748FF);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: .85rem; flex-shrink: 0;
+}
+.tc-name { font-size: .9rem; font-weight: 700; color: #1a1a2e; }
+.tc-role { font-size: .75rem; color: #999; }
+.testimonial-card p { font-size: .85rem; color: #666; line-height: 1.6; margin: 0; font-style: italic; }
+.tc-stars { margin-top: .6rem; color: #ffc107; font-size: .8rem; }
+
+/* ── CONTACT FORM ── */
+.contact-section { padding: 5rem 0; }
+.contact-box {
+  background: linear-gradient(135deg, #7748FF, #5c2ee0);
+  border-radius: 24px; padding: 3.5rem; position: relative; overflow: hidden;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;
+}
+.contact-box::before {
+  content: ''; position: absolute; width: 350px; height: 350px;
+  background: rgba(255,255,255,.07); border-radius: 50%;
+  top: -80px; right: -60px;
+}
+.contact-box::after {
+  content: ''; position: absolute; width: 200px; height: 200px;
+  background: rgba(255,255,255,.05); border-radius: 50%;
+  bottom: -50px; left: -30px;
+}
+.contact-info { position: relative; z-index: 1; color: #fff; }
+.contact-info h2 { font-size: 2rem; font-weight: 800; margin-bottom: .5rem; }
+.contact-info p { font-size: .9rem; color: rgba(255,255,255,.7); margin-bottom: 1.5rem; line-height: 1.6; }
+.contact-detail { display: flex; align-items: center; gap: .7rem; margin-bottom: .8rem; }
+.contact-detail-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(255,255,255,.15); display: flex;
+  align-items: center; justify-content: center; font-size: .9rem; color: #fff;
+}
+.contact-detail span { font-size: .85rem; color: rgba(255,255,255,.8); }
+.contact-form {
+  position: relative; z-index: 1;
+  background: #fff; border-radius: 18px; padding: 2rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,.1);
+}
+.contact-form h3 { font-size: 1.2rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1rem; }
+.contact-form input,
+.contact-form textarea {
+  width: 100%; padding: .7rem .9rem; border: 2px solid #f0ecff;
+  border-radius: 12px; font-size: .88rem; margin-bottom: .8rem;
+  font-family: 'Poppins', sans-serif; outline: none;
+  transition: border-color .2s; box-sizing: border-box;
+}
+.contact-form input:focus,
+.contact-form textarea:focus { border-color: #7748FF; }
+.contact-form textarea { height: 90px; resize: vertical; }
+.contact-form button {
+  width: 100%; padding: .75rem; border: none;
+  background: linear-gradient(135deg, #7748FF, #5c2ee0);
+  color: #fff; font-weight: 700; font-size: .95rem;
+  border-radius: 12px; cursor: pointer; font-family: 'Poppins', sans-serif;
+  transition: transform .2s, box-shadow .2s;
+}
+.contact-form button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(119,72,255,.3); }
+
+@media (max-width: 900px) {
+  .hero-container { flex-direction: column; text-align: center; }
+  .hero-text { max-width: 100%; }
+  .hero-text p { margin: 0 auto 1.8rem; }
+  .hero-image img { width: 280px; height: 280px; }
+  .stats-row { flex-wrap: wrap; }
+  .course-cards { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+  .benefits-inner { grid-template-columns: 1fr; }
+  .mentor-inner { grid-template-columns: 1fr; text-align: center; }
+  .mentor-visual { order: -1; }
+  .testimonial-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+  .contact-box { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="container hero-container">
+    <div class="hero-text">
+      <h1>Революционный подход к обучению</h1>
+      <p>Онлайн-платформа с индивидуальными траекториями, опытными наставниками и интерактивными курсами для школьников</p>
+      <a href="{% url 'register' %}" class="hero-btn"><i class="bi bi-rocket-takeoff-fill"></i> Начать обучение</a>
+    </div>
+    <div class="hero-image">
+      <img src="{% static 'images/woman.png' %}" alt="Ученик">
+      <div class="hero-badge hb-top"><i class="bi bi-award-fill"></i> 50+ курсов</div>
+      <div class="hero-badge hb-bottom"><i class="bi bi-people-fill"></i> 500+ учеников</div>
+    </div>
+  </div>
+</section>
+
+<!-- wave: purple → white -->
+<div class="wave-divider" style="background:#fff;margin-top:-1px;">
+  <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <path fill="#7748FF" d="M0,0 C320,80 560,20 780,60 C1000,100 1200,30 1440,70 L1440,0 L0,0 Z"/>
+  </svg>
+</div>
+
+<!-- ── STATS ── -->
+<section class="stats-section">
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-clock-fill"></i></div>
+        <h3>60 000+</h3>
+        <p>Часов контента</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+        <h3>10 000+</h3>
+        <p>Учеников</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-book-fill"></i></div>
+        <h3>50+</h3>
+        <p>Курсов</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-star-fill"></i></div>
+        <h3>4.9</h3>
+        <p>Средний рейтинг</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── POPULAR COURSES ── -->
+<section class="popular-courses">
+  <div class="container">
+    <h2 class="section-title">Популярные курсы</h2>
+    <p class="section-subtitle">Самые востребованные программы обучения на нашей платформе</p>
+
+    <div class="course-cards">
+      {% for course in top_courses %}
+        <a href="{% url 'course_detail' course.pk %}" class="course-card" style="text-decoration:none;color:inherit">
+          <div class="course-image">
+            {% if course.image %}
+              <img src="{{ course.image.url }}" alt="{{ course.name }}">
+            {% else %}
+              <img src="{% static 'images/' %}{{ course.placeholder }}" alt="{{ course.name }}">
+            {% endif %}
+            {% if course.category %}
+              <span class="course-category">{{ course.category.name }}</span>
+            {% endif %}
+          </div>
+          <div class="card-body">
+            <h3>{{ course.name }}</h3>
+            <p>{{ course.description|truncatechars:80 }}</p>
+            <div class="meta">
+              <div class="d-flex align-items-center gap-2">
+                <div class="lesson-icon"><i class="bi bi-play-fill"></i></div>
+                <span class="lessons-text">{{ course.duration_hours }} уроков</span>
+              </div>
+              <div class="rating">
+                <span>{% localize off %}{{ course.average_rating }}{% endlocalize %}</span>
+                <i class="bi bi-star-fill"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      {% empty %}
+        <p style="grid-column:1/-1;color:#999">Курсы скоро появятся</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- wave: white → purple -->
+<div class="wave-divider" style="background:#fff;margin-bottom:-1px;">
+  <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <path fill="#7748FF" d="M0,120 C240,40 480,100 720,60 C960,20 1200,80 1440,50 L1440,120 L0,120 Z"/>
+  </svg>
+</div>
+
+<!-- ── BENEFITS ── -->
+<section class="benefits-section">
+  <div class="container benefits-inner">
+    <div class="benefits-images">
+      <img src="{% static 'images/course_web.png' %}" alt="Веб-разработка">
+      <img src="{% static 'images/course_writing.png' %}" alt="Письмо">
+      <img src="{% static 'images/course_design.png' %}" alt="Дизайн">
+      <img src="{% static 'images/hero.png' %}" alt="Обучение">
+    </div>
+    <div class="benefits-text">
+      <h2>Преимущества нашего онлайн-обучения</h2>
+      <div class="benefit-item">
+        <div class="benefit-icon"><i class="bi bi-mortarboard-fill"></i></div>
+        <div>
+          <h4>Персональные траектории</h4>
+          <p>Каждый ученик получает индивидуальный план обучения на основе входного тестирования</p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon"><i class="bi bi-camera-video-fill"></i></div>
+        <div>
+          <h4>Живые вебинары</h4>
+          <p>Регулярные онлайн-занятия с наставниками в удобное время</p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <div>
+          <h4>Отслеживание прогресса</h4>
+          <p>Родители и ученики видят результаты в реальном времени</p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon"><i class="bi bi-trophy-fill"></i></div>
+        <div>
+          <h4>Система достижений</h4>
+          <p>Бейджи и награды мотивируют учеников двигаться вперёд</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- wave: purple → white -->
+<div class="wave-divider" style="background:#fff;margin-top:-1px;">
+  <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <path fill="#5c2ee0" d="M0,0 C200,70 500,10 740,50 C980,90 1250,20 1440,60 L1440,0 L0,0 Z"/>
+  </svg>
+</div>
+
+<!-- ── BECOME MENTOR ── -->
+<section class="mentor-section">
+  <div class="container mentor-inner">
+    <div class="mentor-text">
+      <h2>Станьте наставником</h2>
+      <p>Присоединяйтесь к команде менторов EduPlatform. Делитесь своими знаниями с учениками, проводите вебинары и помогайте формировать индивидуальные траектории обучения. Мы предоставим все инструменты для эффективного преподавания.</p>
+      <a href="{% url 'register' %}" class="mentor-btn"><i class="bi bi-arrow-right-circle-fill"></i> Подать заявку</a>
+    </div>
+    <div class="mentor-visual">
+      <img src="{% static 'images/hero.png' %}" alt="Ментор">
+    </div>
+  </div>
+</section>
+
+<!-- wave: white → light purple -->
+<div class="wave-divider" style="background:#fff;margin-bottom:-1px;">
+  <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <path fill="#faf8ff" d="M0,120 C360,50 720,90 1080,40 C1260,20 1380,60 1440,70 L1440,120 L0,120 Z"/>
+  </svg>
+</div>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="testimonials-section">
+  <div class="container">
+    <h2 class="section-title">Отзывы учеников</h2>
+    <p class="section-subtitle">Что говорят о нас наши ученики и их родители</p>
+
+    <div class="testimonial-grid">
+      <div class="testimonial-card">
+        <div class="tc-header">
+          <div class="tc-avatar">АК</div>
+          <div>
+            <div class="tc-name">Алексей К.</div>
+            <div class="tc-role">Ученик, 8 класс</div>
+          </div>
+        </div>
+        <p>«Благодаря платформе я подтянул математику и начал изучать программирование. Менторы всегда помогают разобраться в сложных темах.»</p>
+        <div class="tc-stars">
+          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="tc-header">
+          <div class="tc-avatar">МС</div>
+          <div>
+            <div class="tc-name">Мария С.</div>
+            <div class="tc-role">Родитель</div>
+          </div>
+        </div>
+        <p>«Очень удобно следить за прогрессом ребёнка. Видны все курсы, достижения и расписание вебинаров. Рекомендую!»</p>
+        <div class="tc-stars">
+          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="tc-header">
+          <div class="tc-avatar">ДВ</div>
+          <div>
+            <div class="tc-name">Дмитрий В.</div>
+            <div class="tc-role">Ученик, 10 класс</div>
+          </div>
+        </div>
+        <p>«Индивидуальная траектория — это круто! Платформа сама подобрала мне курсы после тестирования. Учиться интересно.»</p>
+        <div class="tc-stars">
+          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- wave: light purple → white -->
+<div class="wave-divider" style="background:#fff;margin-top:-1px;">
+  <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <path fill="#faf8ff" d="M0,0 C280,80 600,10 900,50 C1100,80 1300,30 1440,60 L1440,0 L0,0 Z"/>
+  </svg>
+</div>
+
+<!-- ── CONTACT FORM ── -->
+<section class="contact-section" id="contact-form">
+  <div class="container">
+    <div class="contact-box">
+      <div class="contact-info">
+        <h2>Свяжитесь с нами</h2>
+        <p>Остались вопросы? Напишите нам — мы ответим в ближайшее время и поможем подобрать программу обучения</p>
+        <div class="contact-detail">
+          <div class="contact-detail-icon"><i class="bi bi-envelope-fill"></i></div>
+          <span>info@eduplatform.ru</span>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-icon"><i class="bi bi-telephone-fill"></i></div>
+          <span>+7 (800) 123-45-67</span>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-icon"><i class="bi bi-geo-alt-fill"></i></div>
+          <span>Москва, Россия</span>
+        </div>
+      </div>
+      <form class="contact-form" method="post" action="#">
+        {% csrf_token %}
+        <h3>Отправить сообщение</h3>
+        <input type="text" name="name" placeholder="Ваше имя" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <textarea name="message" placeholder="Ваше сообщение"></textarea>
+        <button type="submit"><i class="bi bi-send-fill"></i> Отправить</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,314 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Регистрация — EduPlatform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #8869f6 0%, #6d45f5 100%);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── BLOBS ── */
+    .blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .blob { position: absolute; background: #fff; border-radius: 50%; }
+    .blob-1 { width: 500px; height: 500px; top: -150px; left: -150px; opacity: .10; }
+    .blob-2 { width: 400px; height: 400px; bottom: -120px; right: -120px; opacity: .10; }
+    .blob-3 { width: 200px; height: 200px; top: 60%; left: 10%; opacity: .07; }
+
+    /* ── HEADER ── */
+    .auth-header {
+      position: relative; z-index: 2;
+      padding: 1.8rem 2.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { color: #fff; font-weight: 700; font-size: 1.7rem; text-decoration: none; }
+    .header-link { color: rgba(255,255,255,.8); text-decoration: none; font-size: .95rem; font-weight: 500; }
+    .header-link:hover { color: #fff; }
+
+    /* ── MAIN ── */
+    .auth-main {
+      flex: 1; display: flex; align-items: flex-start; justify-content: center;
+      padding: 1.5rem 1rem 3rem; position: relative; z-index: 1;
+    }
+
+    /* ── CARD ── */
+    .auth-card {
+      background: #fff; border-radius: 28px;
+      padding: 2.5rem 3rem;
+      width: 100%; max-width: 520px;
+      box-shadow: 0 24px 80px rgba(40,0,120,.22);
+    }
+
+    .auth-card-title { font-size: 1.9rem; font-weight: 800; color: #1a1a2e; margin-bottom: .3rem; }
+    .auth-card-sub { font-size: .88rem; color: #999; margin-bottom: 1.8rem; }
+    .auth-card-sub a { color: #7748FF; font-weight: 600; text-decoration: none; }
+    .auth-card-sub a:hover { text-decoration: underline; }
+
+    /* ── ROLE PICKER ── */
+    .role-label { font-size: .82rem; font-weight: 700; color: #555; margin-bottom: .7rem; display: block; }
+
+    .role-cards {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: .6rem; margin-bottom: 1.6rem;
+    }
+
+    .role-card-label {
+      display: flex; flex-direction: column; align-items: center;
+      gap: .4rem; padding: .9rem .5rem;
+      border: 2px solid #e8e4f8; border-radius: 14px;
+      cursor: pointer; transition: border-color .18s, background .18s, transform .15s;
+      user-select: none; position: relative;
+    }
+    .role-card-label:hover { border-color: #c4b0ff; background: #faf8ff; transform: translateY(-2px); }
+    .role-card-label.selected { border-color: #7748FF; background: #f3eeff; }
+
+    /* Скрываем стандартный radio */
+    .role-card-label input[type="radio"] {
+      position: absolute; opacity: 0; width: 0; height: 0;
+    }
+
+    .role-card-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; color: #fff;
+      background: linear-gradient(135deg, #b0a8d0, #9d8fd0);
+      transition: background .18s;
+    }
+    .role-card-label.selected .role-card-icon {
+      background: linear-gradient(135deg, #7748FF, #b08aff);
+    }
+    .role-card-name { font-size: .82rem; font-weight: 700; color: #555; text-align: center; }
+    .role-card-label.selected .role-card-name { color: #7748FF; }
+
+    .role-card-check {
+      position: absolute; top: .5rem; right: .5rem;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #7748FF; display: none;
+      align-items: center; justify-content: center;
+    }
+    .role-card-check i { font-size: .6rem; color: #fff; }
+    .role-card-label.selected .role-card-check { display: flex; }
+
+    /* ── FIELDS ── */
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+    .field-full  { grid-column: 1 / -1; }
+    .field-group { display: flex; flex-direction: column; gap: .75rem; margin-bottom: 1.4rem; }
+
+    .field-wrap { display: flex; flex-direction: column; gap: .3rem; }
+    .field-label { font-size: .8rem; font-weight: 600; color: #555; }
+
+    .auth-input-wrap { position: relative; }
+    .auth-input-wrap .field-icon {
+      position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+      color: #b0a8d0; font-size: .95rem; pointer-events: none;
+    }
+    .auth-input {
+      width: 100%; padding: .72rem 1rem .72rem 2.5rem;
+      background: #f5f3ff; border: 2px solid transparent;
+      border-radius: 11px; font-size: .9rem; font-family: 'Poppins', sans-serif;
+      color: #1a1a2e; outline: none;
+      transition: border-color .2s, background .2s;
+    }
+    .auth-input:focus { border-color: #7748FF; background: #fff; }
+
+    .field-error { font-size: .75rem; color: #e53935; margin-top: .15rem; }
+    .form-errors {
+      background: #fff0f0; border: 1px solid #ffcdd2;
+      border-radius: 10px; padding: .7rem 1rem;
+      font-size: .83rem; color: #c62828; margin-bottom: 1rem;
+    }
+    .form-errors ul { list-style: none; }
+
+    .pwd-toggle {
+      position: absolute; right: .8rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: #b0a8d0; font-size: .95rem; padding: 0;
+    }
+    .pwd-toggle:hover { color: #7748FF; }
+
+    /* ── SUBMIT ── */
+    .auth-submit {
+      width: 100%; padding: .85rem;
+      background: #7748FF; color: #fff; border: none;
+      border-radius: 14px; font-size: .97rem; font-weight: 700;
+      font-family: 'Poppins', sans-serif; cursor: pointer;
+      transition: background .2s, transform .15s;
+    }
+    .auth-submit:hover { background: #5c2ee0; transform: translateY(-2px); }
+
+    @media (max-width: 500px) {
+      .auth-card { padding: 1.8rem 1.3rem; }
+      .field-grid { grid-template-columns: 1fr; }
+      .role-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob-wrap">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<header class="auth-header">
+  <a href="{% url 'home' %}" class="logo">EduPlatform</a>
+  <a href="{% url 'login' %}" class="header-link">Уже есть аккаунт? <strong>Войти</strong></a>
+</header>
+
+<main class="auth-main">
+  <div class="auth-card">
+
+    <h1 class="auth-card-title">Создать аккаунт</h1>
+    <p class="auth-card-sub">
+      Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+    </p>
+
+    {% if form.non_field_errors %}
+    <div class="form-errors">
+      <ul>{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {# ── ROLE PICKER ── #}
+      <span class="role-label">Я регистрируюсь как</span>
+      <div class="role-cards" id="role-cards">
+
+        <label class="role-card-label" id="role-label-student">
+          <input type="radio" name="role" value="student" checked>
+          <div class="role-card-check"><i class="bi bi-check2"></i></div>
+          <div class="role-card-icon"><i class="bi bi-mortarboard-fill"></i></div>
+          <span class="role-card-name">Ученик</span>
+        </label>
+
+        <label class="role-card-label" id="role-label-parent">
+          <input type="radio" name="role" value="parent">
+          <div class="role-card-check"><i class="bi bi-check2"></i></div>
+          <div class="role-card-icon"><i class="bi bi-people-fill"></i></div>
+          <span class="role-card-name">Родитель</span>
+        </label>
+
+        <label class="role-card-label" id="role-label-mentor">
+          <input type="radio" name="role" value="mentor">
+          <div class="role-card-check"><i class="bi bi-check2"></i></div>
+          <div class="role-card-icon"><i class="bi bi-person-badge-fill"></i></div>
+          <span class="role-card-name">Ментор</span>
+        </label>
+
+      </div>
+      {% for e in form.role.errors %}<p class="field-error" style="margin-top:-.8rem;margin-bottom:.8rem">{{ e }}</p>{% endfor %}
+
+      {# ── FIELDS ── #}
+      <div class="field-group">
+
+        <div class="field-grid">
+          <div class="field-wrap">
+            <label class="field-label">Имя</label>
+            <div class="auth-input-wrap">
+              <i class="bi bi-person field-icon"></i>
+              {{ form.first_name }}
+            </div>
+            {% for e in form.first_name.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">Фамилия</label>
+            <div class="auth-input-wrap">
+              <i class="bi bi-person field-icon"></i>
+              {{ form.last_name }}
+            </div>
+            {% for e in form.last_name.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+          </div>
+        </div>
+
+        <div class="field-wrap">
+          <label class="field-label">Никнейм</label>
+          <div class="auth-input-wrap">
+            <i class="bi bi-at field-icon"></i>
+            {{ form.username }}
+          </div>
+          {% for e in form.username.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="field-wrap">
+          <label class="field-label">Email</label>
+          <div class="auth-input-wrap">
+            <i class="bi bi-envelope field-icon"></i>
+            {{ form.email }}
+          </div>
+          {% for e in form.email.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="field-wrap">
+          <label class="field-label">Пароль</label>
+          <div class="auth-input-wrap">
+            <i class="bi bi-lock field-icon"></i>
+            {{ form.password1 }}
+            <button type="button" class="pwd-toggle" onclick="togglePwd(this)"><i class="bi bi-eye"></i></button>
+          </div>
+          {% for e in form.password1.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="field-wrap">
+          <label class="field-label">Повторите пароль</label>
+          <div class="auth-input-wrap">
+            <i class="bi bi-lock field-icon"></i>
+            {{ form.password2 }}
+            <button type="button" class="pwd-toggle" onclick="togglePwd(this)"><i class="bi bi-eye"></i></button>
+          </div>
+          {% for e in form.password2.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+
+      </div>
+
+      <button type="submit" class="auth-submit">Зарегистрироваться</button>
+    </form>
+
+  </div>
+</main>
+
+<script>
+/* ── Role card visual selection ── */
+const roleInputs = document.querySelectorAll('input[name="role"]');
+const roleLabels = document.querySelectorAll('.role-card-label');
+
+function updateRoleCards() {
+  roleLabels.forEach(label => {
+    const input = label.querySelector('input[type="radio"]');
+    label.classList.toggle('selected', input.checked);
+  });
+}
+
+// Инициализация
+updateRoleCards();
+
+roleInputs.forEach(input => {
+  input.addEventListener('change', updateRoleCards);
+});
+
+/* ── Password toggle ── */
+function togglePwd(btn) {
+  const input = btn.closest('.auth-input-wrap').querySelector('input');
+  const icon  = btn.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+</script>
+</body>
+</html>

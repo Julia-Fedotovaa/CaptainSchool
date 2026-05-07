@@ -1,0 +1,16 @@
+﻿{% extends "base.html" %}
+{% block title %}Траектория ребёнка{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Образовательная траектория ребёнка</h2>
+
+{% for t in items %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5>{{ t.track.name }}</h5>
+      <p><b>Статус:</b> {{ t.status }}</p>
+      <p><b>Цели:</b> {{ t.goals }}</p>
+    </div>
+  </div>
+{% endfor %}
+{% endblock %}

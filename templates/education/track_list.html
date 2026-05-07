@@ -1,0 +1,35 @@
+﻿{% extends "base.html" %}
+{% block title %}Треки{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Образовательные треки</h2>
+  <a href="{% url 'track_create' %}" class="btn btn-success">
+    + Добавить трек
+  </a>
+</div>
+
+<table class="table table-hover">
+  <thead class="table-light">
+    <tr>
+      <th>Название</th>
+      <th>Формат</th>
+      <th>Сложность</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for t in tracks %}
+      <tr>
+        <td>{{ t.name }}</td>
+        <td>{{ t.format }}</td>
+        <td>{{ t.difficulty }}</td>
+        <td class="text-end">
+          <a href="{% url 'track_edit' t.id %}" class="btn btn-sm btn-outline-secondary">✏️</a>
+          <a href="{% url 'track_delete' t.id %}" class="btn btn-sm btn-outline-danger">🗑</a>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

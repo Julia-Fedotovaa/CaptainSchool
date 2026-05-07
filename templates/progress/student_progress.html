@@ -1,0 +1,25 @@
+﻿{% extends "base.html" %}
+{% block title %}Мой прогресс{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Мой прогресс</h2>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Курс</th>
+      <th>Пройдено</th>
+      <th>Результат</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in items %}
+      <tr>
+        <td>{{ p.course.name }}</td>
+        <td>{{ p.completion_percent }}%</td>
+        <td>{{ p.result }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

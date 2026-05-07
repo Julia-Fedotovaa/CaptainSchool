@@ -1,0 +1,191 @@
+﻿{% extends "base_template.html" %}
+{% load static %}
+
+{% block title %}Урок завершён — {{ lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #1a1a2e; }
+.site-header { position: relative !important; background: transparent; padding: 1.5rem 0; }
+.site-header .logo, .site-header .nav a { color: #fff !important; }
+
+.result-wrap {
+  max-width: 640px; margin: 0 auto; padding: 2rem 1.5rem 5rem;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+
+/* ── BIG GRADE CIRCLE ── */
+.grade-circle {
+  width: 130px; height: 130px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 2.8rem; font-weight: 900; color: #fff;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 40px rgba(0,0,0,.3);
+  position: relative;
+}
+.grade-circle::after {
+  content: ''; position: absolute; inset: -6px;
+  border-radius: 50%; border: 3px solid currentColor; opacity: .3;
+}
+.grade-sub { font-size: .75rem; font-weight: 600; opacity: .8; margin-top: .1rem; }
+
+.result-title { font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: .4rem; }
+.result-sub   { color: rgba(255,255,255,.55); font-size: .95rem; margin-bottom: 2.5rem; }
+
+/* ── STAT CARDS ── */
+.result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2.5rem; width: 100%; }
+.r-stat {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px; padding: 1.2rem;
+}
+.r-stat .val { font-size: 1.6rem; font-weight: 800; color: #fff; }
+.r-stat .lbl { font-size: .72rem; color: rgba(255,255,255,.45); font-weight: 500; margin-top: .2rem; }
+
+/* ── ACTIONS ── */
+.result-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; width: 100%; }
+.btn-primary {
+  background: #7748FF; color: #fff; border: none;
+  padding: .8rem 2.2rem; border-radius: 14px; font-size: .97rem; font-weight: 700;
+  font-family: 'Poppins', sans-serif; cursor: pointer; text-decoration: none;
+  transition: background .2s, transform .15s; display: inline-block;
+}
+.btn-primary:hover { background: #5c2ee0; transform: translateY(-2px); color: #fff; }
+.btn-ghost {
+  background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.2);
+  padding: .78rem 2rem; border-radius: 14px; font-size: .97rem; font-weight: 600;
+  font-family: 'Poppins', sans-serif; cursor: pointer; text-decoration: none;
+  transition: background .2s; display: inline-block;
+}
+.btn-ghost:hover { background: rgba(255,255,255,.2); color: #fff; }
+
+/* ── NEXT LESSON ── */
+.next-lesson-card {
+  background: rgba(119,72,255,.18); border: 1px solid rgba(119,72,255,.4);
+  border-radius: 16px; padding: 1.2rem 1.5rem;
+  display: flex; align-items: center; gap: 1rem;
+  text-decoration: none; width: 100%; margin-bottom: 1.5rem;
+  transition: background .2s;
+}
+.next-lesson-card:hover { background: rgba(119,72,255,.28); }
+.next-num {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: .95rem; color: #fff; flex-shrink: 0;
+}
+.next-info .label { font-size: .72rem; color: rgba(255,255,255,.45); font-weight: 600; text-transform: uppercase; }
+.next-info .name  { font-size: .97rem; font-weight: 700; color: #fff; }
+
+footer { background: rgba(255,255,255,.04) !important; color: rgba(255,255,255,.3) !important; border-top: 1px solid rgba(255,255,255,.07) !important; }
+footer h5 { color: rgba(255,255,255,.6) !important; }
+footer ul li a { color: rgba(255,255,255,.35) !important; }
+
+/* ── НОВЫЕ ДОСТИЖЕНИЯ ── */
+.new-badges-wrap {
+  width: 100%; margin-bottom: 2rem;
+}
+.new-badges-title {
+  font-size: .75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: rgba(255,255,255,.45);
+  margin-bottom: 1rem; text-align: center;
+}
+.new-badges-row {
+  display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+}
+.new-badge-card {
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  border-radius: 16px; padding: 1.1rem 1.3rem;
+  display: flex; flex-direction: column; align-items: center; gap: .45rem;
+  min-width: 110px; max-width: 130px;
+  animation: badgePop .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.new-badge-card:nth-child(2) { animation-delay: .12s; }
+.new-badge-card:nth-child(3) { animation-delay: .24s; }
+@keyframes badgePop {
+  from { opacity:0; transform:scale(.5) translateY(10px); }
+  to   { opacity:1; transform:scale(1)  translateY(0);    }
+}
+.nb-medal svg  { width: 52px; height: 62px; }
+.nb-name  { font-size: .75rem; font-weight: 700; color: #fff; text-align: center; line-height: 1.3; }
+.nb-desc  { font-size: .65rem; color: rgba(255,255,255,.5); text-align: center; line-height: 1.4; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="result-wrap">
+
+  {# ── GRADE ── #}
+  {% with g=lp.grade %}
+  <div class="grade-circle" style="background: {{ g.1 }}; color: {{ g.1 }}">
+    <span style="color:#fff">{{ g.0 }}</span>
+    <span class="grade-sub" style="color:rgba(255,255,255,.75)">{{ lp.score_percent }}%</span>
+  </div>
+  {% endwith %}
+
+  <h1 class="result-title">Урок завершён!</h1>
+  <p class="result-sub">{{ lesson.title }}</p>
+
+  {# ── STATS ── #}
+  <div class="result-stats">
+    <div class="r-stat">
+      <div class="val">{{ lp.correct_answers }}/{{ lp.total_test_cards }}</div>
+      <div class="lbl">Верных ответов</div>
+    </div>
+    <div class="r-stat">
+      <div class="val">{{ lp.score_percent }}%</div>
+      <div class="lbl">Результат</div>
+    </div>
+    <div class="r-stat">
+      <div class="val">{{ lesson.total_cards }}</div>
+      <div class="lbl">Карточек</div>
+    </div>
+  </div>
+
+  {# ── НОВЫЕ ДОСТИЖЕНИЯ ── #}
+  {% if recent_badges %}
+  <div class="new-badges-wrap">
+    <div class="new-badges-title">🏅 Получено достижений</div>
+    <div class="new-badges-row">
+      {% for sb in recent_badges %}
+      {% with b=sb.badge %}
+      <div class="new-badge-card">
+        <div class="nb-medal">
+          <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="0" width="8"  height="30" fill="{{ b.color_a }}"/>
+            <rect x="28" y="0" width="8"  height="30" fill="#fff"/>
+            <rect x="36" y="0" width="8"  height="30" fill="{{ b.color_b }}"/>
+            <circle cx="32" cy="54" r="22" fill="{{ b.color_a }}"/>
+            <circle cx="32" cy="54" r="18" fill="{{ b.color_b }}"/>
+            <polygon points="32,38 34.5,47 44,47 36.7,52.5 39.5,62 32,56.5 24.5,62 27.3,52.5 20,47 29.5,47"
+                     fill="#FFD700" stroke="#e6b800" stroke-width="0.5"/>
+          </svg>
+        </div>
+        <div class="nb-name">{{ b.display_name }}</div>
+        <div class="nb-desc">{{ b.display_desc|truncatechars:45 }}</div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── СЛЕДУЮЩИЙ УРОК ── #}
+  {% if next_lesson %}
+  <a href="{% url 'lesson_player' next_lesson.id %}" class="next-lesson-card">
+    <div class="next-num" style="background: {{ next_lesson.color_hex }}">{{ next_lesson.order }}</div>
+    <div class="next-info">
+      <div class="label">Следующий урок</div>
+      <div class="name">{{ next_lesson.title }}</div>
+    </div>
+    <i class="bi bi-arrow-right" style="color:rgba(255,255,255,.5); margin-left:auto"></i>
+  </a>
+  {% endif %}
+
+  {# ── ACTIONS ── #}
+  <div class="result-actions">
+    <a href="{% url 'course_detail' course.id %}" class="btn-primary">К курсу</a>
+    <a href="{% url 'lesson_player' lesson.id %}" class="btn-ghost">Пройти снова</a>
+  </div>
+
+</div>
+{% endblock %}
