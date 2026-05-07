@@ -192,6 +192,45 @@ body { background: #f6f4fe; }
 }
 .del-btn-confirm:hover { background: #dc2626; }
 
+/* ── PARENT CHILDREN ENROLL ── */
+.children-enroll-box { margin-top: 1.2rem; display: flex; flex-direction: column; gap: .55rem; }
+.child-enroll-row {
+  display: flex; align-items: center; gap: .8rem;
+  background: rgba(255,255,255,.14); backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 14px; padding: .6rem 1rem;
+}
+.child-enroll-avatar {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  background: rgba(255,255,255,.22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; color: #fff; overflow: hidden;
+}
+.child-enroll-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.child-enroll-name { flex: 1; font-size: .88rem; font-weight: 600; color: #fff; }
+.btn-enroll-child {
+  background: #fff; color: #7748FF; border: none;
+  padding: .38rem 1rem; border-radius: 9px;
+  font-size: .8rem; font-weight: 700; font-family: 'Poppins', sans-serif;
+  cursor: pointer; white-space: nowrap; transition: transform .15s, background .15s;
+  display: inline-flex; align-items: center; gap: .3rem;
+}
+.btn-enroll-child:hover { background: #f0e8ff; transform: translateY(-1px); }
+.btn-unenroll-child {
+  background: rgba(255,255,255,.18); color: rgba(255,255,255,.85); border: 1px solid rgba(255,255,255,.35);
+  padding: .38rem 1rem; border-radius: 9px;
+  font-size: .8rem; font-weight: 600; font-family: 'Poppins', sans-serif;
+  cursor: pointer; white-space: nowrap; transition: all .15s;
+  display: inline-flex; align-items: center; gap: .3rem;
+}
+.btn-unenroll-child:hover { background: rgba(255,255,255,.28); border-color: rgba(255,255,255,.6); }
+.child-enrolled-badge {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: rgba(34,197,94,.2); color: #86efac;
+  border: 1px solid rgba(34,197,94,.3);
+  padding: .28rem .75rem; border-radius: 8px; font-size: .78rem; font-weight: 600;
+}
+
 @media (max-width: 860px) {
   .page-body { grid-template-columns: 1fr; }
   .hero-inner { grid-template-columns: 1fr; }
@@ -238,14 +277,37 @@ body { background: #f6f4fe; }
             </form>
           {% endif %}
         {% elif user.role == 'parent' %}
-          {% if child_enrolled %}
-            <span class="enrolled-badge"><i class="bi bi-check-circle-fill"></i> Ребёнок записан</span>
-          {% else %}
-            <form method="post" style="display:inline">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="enroll_child">
-              <button type="submit" class="btn-enroll"><i class="bi bi-person-plus-fill"></i> Записать ребёнка</button>
-            </form>
+          {% if children_status %}
+          <div class="children-enroll-box">
+            {% for item in children_status %}
+            <div class="child-enroll-row">
+              <div class="child-enroll-avatar">
+                {% if item.student.user.avatar %}
+                  <img src="{{ item.student.user.avatar.url }}" alt="">
+                {% else %}
+                  <i class="bi bi-person-fill"></i>
+                {% endif %}
+              </div>
+              <span class="child-enroll-name">{{ item.student.user.get_full_name }}</span>
+              {% if item.enrolled %}
+                <span class="child-enrolled-badge"><i class="bi bi-check-circle-fill"></i> Записан</span>
+                <form method="post" style="margin:0">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="unenroll_child">
+                  <input type="hidden" name="child_id" value="{{ item.student.pk }}">
+                  <button type="submit" class="btn-unenroll-child"><i class="bi bi-x"></i> Отписать</button>
+                </form>
+              {% else %}
+                <form method="post" style="margin:0">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="enroll_child">
+                  <input type="hidden" name="child_id" value="{{ item.student.pk }}">
+                  <button type="submit" class="btn-enroll-child"><i class="bi bi-person-plus-fill"></i> Записать</button>
+                </form>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
           {% endif %}
         {% elif user.role == 'mentor' and is_mentor_course %}
           <span class="enrolled-badge"><i class="bi bi-pencil-square"></i> Ваш курс</span>

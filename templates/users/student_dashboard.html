@@ -36,19 +36,44 @@ body { background: #7748FF; }
 .profile-avatar .ph { font-size: 4rem; color: rgba(255,255,255,.5); }
 .profile-body { flex: 1; min-width: 0; }
 .profile-body h2 { font-size: 1.6rem; font-weight: 800; color: #1a1a2e; margin: 0 0 .1rem; }
-.profile-sub { color: #999; font-size: .85rem; margin-bottom: .8rem; }
+.profile-tags { display: flex; gap: .45rem; flex-wrap: wrap; margin-bottom: .85rem; }
+.profile-tag {
+  display: inline-flex; align-items: center; gap: .3rem;
+  border-radius: 8px; padding: .22rem .65rem;
+  font-size: .74rem; font-weight: 700;
+}
+.profile-tag i { font-size: .68rem; }
+.profile-tag-level { background: #ede9fe; color: #7748FF; }
+.profile-tag-status { background: #dcfce7; color: #16a34a; }
+.profile-fill-chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: #fffbeb; color: #b45309; border: 1.5px solid #fde68a;
+  border-radius: 8px; padding: .28rem .75rem; font-size: .78rem; font-weight: 600;
+  text-decoration: none; margin-bottom: .7rem; transition: background .15s;
+}
+.profile-fill-chip:hover { background: #fef3c7; color: #92400e; }
+.profile-fill-chip i { font-size: .7rem; }
+
 .profile-pbar { height: 6px; background: #ede9fe; border-radius: 3px; overflow: hidden; margin-bottom: .3rem; }
 .profile-pfill { height: 100%; background: linear-gradient(90deg, #7748FF, #b08aff); border-radius: 3px; transition: width .6s; }
 .profile-plbl { font-size: .7rem; color: #bbb; margin-bottom: 1rem; }
 
-.profile-stats { display: flex; gap: 0; align-items: center; }
-.ps { display: flex; align-items: center; gap: .5rem; padding: 0 1.4rem; }
-.ps:first-child { padding-left: 0; }
-.ps-icon { font-size: 1.1rem; }
-.ps-icon.a { color: #7748FF; } .ps-icon.b { color: #aaa; } .ps-icon.c { color: #22c55e; }
-.ps-val { font-size: 1.2rem; font-weight: 700; color: #1a1a2e; line-height: 1; }
-.ps-lbl { font-size: .68rem; color: #999; }
-.ps-div { width: 1px; height: 30px; background: #ede9fe; flex-shrink: 0; }
+.profile-stats { display: flex; gap: .55rem; margin-top: .3rem; }
+.ps-card {
+  display: flex; align-items: center; gap: .55rem;
+  background: #faf8ff; border: 1.5px solid #f0ecff;
+  border-radius: 12px; padding: .55rem .75rem; flex: 1;
+  min-width: 0;
+}
+.ps-card-icon {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: .95rem;
+}
+.ps-icon-lessons { background: #ede9fe; color: #7748FF; }
+.ps-icon-time    { background: #fef3c7; color: #d97706; }
+.ps-icon-correct { background: #dcfce7; color: #16a34a; }
+.ps-card-val { font-size: 1.1rem; font-weight: 800; color: #1a1a2e; line-height: 1; white-space: nowrap; }
+.ps-card-lbl { font-size: .62rem; color: #aaa; font-weight: 600; line-height: 1.3; margin-top: .12rem; }
 
 .edit-btn {
   position: absolute; top: 1.5rem; right: 1.8rem;
@@ -303,6 +328,46 @@ body { background: #7748FF; }
 .course-card-pfill { height: 100%; background: linear-gradient(90deg, #7748FF, #b08aff); border-radius: 3px; }
 .course-card-plbl { font-size: .7rem; color: #999; margin-top: .2rem; }
 
+/* ===== PLACEMENT BANNER ===== */
+.placement-banner {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-radius: 20px; padding: 1.4rem 2rem;
+  display: flex; align-items: center; gap: 1.4rem;
+  margin-bottom: 1.6rem;
+  box-shadow: 0 8px 32px rgba(245,158,11,.35);
+  position: relative; overflow: hidden;
+}
+.placement-banner::after {
+  content: ''; position: absolute; right: -40px; top: -40px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  pointer-events: none;
+}
+.placement-banner-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; color: #fff; flex-shrink: 0;
+}
+.placement-banner-body { flex: 1; min-width: 0; }
+.placement-banner-body h4 {
+  font-size: 1rem; font-weight: 800; color: #fff; margin: 0 0 .2rem;
+}
+.placement-banner-body p {
+  font-size: .82rem; color: rgba(255,255,255,.8); margin: 0; line-height: 1.5;
+}
+.placement-banner-btn {
+  background: #fff; color: #d97706; border: none;
+  padding: .65rem 1.6rem; border-radius: 12px;
+  font-size: .9rem; font-weight: 700; font-family: 'Poppins', sans-serif;
+  cursor: pointer; text-decoration: none; white-space: nowrap; flex-shrink: 0;
+  transition: transform .15s, box-shadow .15s;
+  display: inline-flex; align-items: center; gap: .4rem;
+}
+.placement-banner-btn:hover {
+  transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.15); color: #b45309;
+}
+
 /* ===== FOOTER ===== */
 footer { background: linear-gradient(180deg, #5a2ee0, #7748FF) !important; color: rgba(255,255,255,.75) !important; }
 footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.68) !important; }
@@ -342,28 +407,59 @@ footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.
     </div>
     <div class="profile-body">
       <h2>{{ student.user.get_full_name }}</h2>
-      <div class="profile-sub">{{ student.education_level }}{% if student.study_status %} · {{ student.study_status }}{% endif %}</div>
+      {% if student.education_level != 'Не указан' %}
+      <div class="profile-tags">
+        <span class="profile-tag profile-tag-level">
+          <i class="bi bi-mortarboard-fill"></i> {{ student.education_level }}
+        </span>
+      </div>
+      {% else %}
+      <a href="{% url 'profile_edit' %}" class="profile-fill-chip">
+        <i class="bi bi-pencil-fill"></i> Дополните профиль — укажите класс и интересы
+      </a>
+      {% endif %}
       <div class="profile-pbar"><div class="profile-pfill" style="width:{{ avg_completion }}%"></div></div>
       <div class="profile-plbl">{{ avg_completion }}% курсов пройдено</div>
       <div class="profile-stats">
-        <div class="ps">
-          <i class="bi bi-flag-fill ps-icon a"></i>
-          <div><div class="ps-val">{{ stats.quizzes_passed }}</div><div class="ps-lbl">Тестов</div></div>
+        <div class="ps-card">
+          <div class="ps-card-icon ps-icon-lessons"><i class="bi bi-journal-check"></i></div>
+          <div>
+            <div class="ps-card-val">{{ stats.quizzes_passed }}</div>
+            <div class="ps-card-lbl">Уроков<br>завершено</div>
+          </div>
         </div>
-        <div class="ps-div"></div>
-        <div class="ps">
-          <i class="bi bi-clock ps-icon b"></i>
-          <div><div class="ps-val">{{ stats.best_time_display }}</div><div class="ps-lbl">Лучшее время</div></div>
+        <div class="ps-card">
+          <div class="ps-card-icon ps-icon-time"><i class="bi bi-stopwatch-fill"></i></div>
+          <div>
+            <div class="ps-card-val">{{ stats.best_time_display }}</div>
+            <div class="ps-card-lbl">Рекорд<br>за урок</div>
+          </div>
         </div>
-        <div class="ps-div"></div>
-        <div class="ps">
-          <i class="bi bi-check-circle ps-icon c"></i>
-          <div><div class="ps-val">{{ stats.correct_answers }}</div><div class="ps-lbl">Правильных</div></div>
+        <div class="ps-card">
+          <div class="ps-card-icon ps-icon-correct"><i class="bi bi-check2-all"></i></div>
+          <div>
+            <div class="ps-card-val">{{ stats.correct_answers }}</div>
+            <div class="ps-card-lbl">Верных<br>ответов</div>
+          </div>
         </div>
       </div>
     </div>
     <a href="{% url 'profile_edit' %}" class="edit-btn">Редактировать</a>
   </div>
+
+  {# ===== PLACEMENT TEST BANNER ===== #}
+  {% if not placement_done %}
+  <div class="placement-banner">
+    <div class="placement-banner-icon"><i class="bi bi-clipboard2-check-fill"></i></div>
+    <div class="placement-banner-body">
+      <h4>Пройдите вступительный тест</h4>
+      <p>Он поможет подобрать курсы по вашему уровню и построить персональную траекторию обучения</p>
+    </div>
+    <a href="{% url 'placement_test_start' %}" class="placement-banner-btn">
+      <i class="bi bi-arrow-right-circle-fill"></i> Пройти тест
+    </a>
+  </div>
+  {% endif %}
 
   {# ===== UNIFIED CARD: Badges + Calendar/Webinars ===== #}
   <div class="middle-card">

@@ -1,0 +1,17 @@
+{% extends "_error_base.html" %}
+
+{% block page_title %}Страница не найдена{% endblock %}
+
+{% block accent_color %}#7748FF{% endblock %}
+{% block accent_color2 %}#7748FF{% endblock %}
+{% block accent_color3 %}#a78bff{% endblock %}
+{% block icon_bg %}linear-gradient(135deg, #7748FF, #a78bff){% endblock %}
+{% block icon_shadow %}0 8px 24px rgba(119, 72, 255, .35){% endblock %}
+
+{% block error_code %}404{% endblock %}
+{% block error_icon %}bi-compass{% endblock %}
+{% block error_title %}Страница не найдена{% endblock %}
+{% block error_desc %}
+  Похоже, эта страница переехала или&nbsp;никогда не&nbsp;существовала.<br>
+  Проверьте ссылку или вернитесь на&nbsp;главную.
+{% endblock %}

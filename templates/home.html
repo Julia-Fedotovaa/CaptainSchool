@@ -505,9 +505,16 @@
           <span>Москва, Россия</span>
         </div>
       </div>
-      <form class="contact-form" method="post" action="#">
+      <form class="contact-form" method="post" action="{% url 'contact_submit' %}">
         {% csrf_token %}
         <h3>Отправить сообщение</h3>
+        {% if contact_sent %}
+        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;
+                    padding:.7rem 1rem;margin-bottom:.9rem;font-size:.85rem;
+                    color:#16a34a;display:flex;align-items:center;gap:.5rem;">
+          <i class="bi bi-check-circle-fill"></i> Сообщение отправлено! Мы ответим вам в ближайшее время.
+        </div>
+        {% endif %}
         <input type="text" name="name" placeholder="Ваше имя" required>
         <input type="email" name="email" placeholder="Email" required>
         <textarea name="message" placeholder="Ваше сообщение"></textarea>
@@ -516,5 +523,11 @@
     </div>
   </div>
 </section>
+
+{% if contact_sent %}
+<script>
+  document.getElementById('contact-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+</script>
+{% endif %}
 
 {% endblock %}

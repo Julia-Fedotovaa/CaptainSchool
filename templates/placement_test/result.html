@@ -1,107 +1,186 @@
-﻿{% extends "base_template.html" %}
+{% extends "base_template.html" %}
 {% load static %}
 
-{% block title %}Результаты теста{% endblock %}
+{% block title %}Результаты вступительного теста{% endblock %}
 
 {% block extra_css %}
 <style>
 body { background: #7748FF; }
 .site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
 
+/* ── BLOBS ── */
 .bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-.bg-blob { position: absolute; background: #fff; }
-.bg-blob-1 { width: 380px; height: 380px; top: 25%; left: -130px; border-radius: 50%; opacity: .16; }
-.bg-blob-2 { width: 300px; height: 300px; top: 60%; right: -100px; border-radius: 50%; opacity: .13; }
+.bg-blob { position: absolute; background: #fff; border-radius: 50%; }
+.bg-blob-1 { width: 450px; height: 450px; top: 15%; left: -150px; opacity: .13; }
+.bg-blob-2 { width: 360px; height: 360px; top: 60%; right: -110px; opacity: .11; }
+.bg-blob-3 { width: 220px; height: 220px; bottom: 8%; left: 40%; opacity: .07; }
 
-.result-wrapper { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 2rem 5rem; }
+/* ── LAYOUT ── */
+.res-wrap {
+  max-width: 860px; margin: 0 auto; padding: 0 2rem 5rem;
+  position: relative; z-index: 1;
+}
 
-.result-title { color: #fff; font-size: 2.8rem; font-weight: 800; margin-bottom: .5rem; }
-.result-subtitle { color: rgba(255,255,255,.75); font-size: 1rem; margin-bottom: 2.5rem; }
+/* ── HERO BANNER ── */
+.res-hero {
+  background: #fff; border-radius: 24px; padding: 2.2rem 2.5rem;
+  display: flex; align-items: center; gap: 1.8rem;
+  margin-bottom: 1.8rem;
+  box-shadow: 0 8px 40px rgba(40,0,120,.14);
+  position: relative; overflow: hidden;
+}
+.res-hero::after {
+  content: ''; position: absolute; right: -50px; top: -50px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: #f3eeff;
+}
+.res-hero-icon {
+  width: 72px; height: 72px; border-radius: 18px; flex-shrink: 0;
+  background: linear-gradient(135deg, #7748FF, #b08aff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; color: #fff;
+  box-shadow: 0 6px 24px rgba(119,72,255,.35);
+}
+.res-hero-body { position: relative; z-index: 1; }
+.res-hero-label {
+  font-size: .7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: #7748FF; margin-bottom: .3rem;
+}
+.res-hero-title { font-size: 1.9rem; font-weight: 800; color: #1a1a2e; margin-bottom: .25rem; }
+.res-hero-sub   { font-size: .88rem; color: #888; line-height: 1.5; }
 
-/* ── TOP CATEGORIES ── */
-.cats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.1rem; margin-bottom: 2.5rem; }
+/* ── SECTION HEADING ── */
+.sec-heading {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: rgba(255,255,255,.65);
+  margin-bottom: 1rem; display: flex; align-items: center; gap: .6rem;
+}
+.sec-heading::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.2);
+}
+
+/* ── CATEGORY CARDS ── */
+.cats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem; margin-bottom: 1.8rem;
+}
 
 .cat-card {
-  background: #fff; border-radius: 20px; padding: 1.8rem 2rem;
-  box-shadow: 0 8px 40px rgba(40,0,120,.14);
-  display: flex; flex-direction: column; gap: .5rem;
+  background: #fff; border-radius: 20px; padding: 1.5rem 1.7rem;
+  display: flex; flex-direction: column; gap: .4rem;
+  box-shadow: 0 8px 40px rgba(40,0,120,.12);
 }
-.cat-card-rank { font-size: .75rem; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: .07em; }
-.cat-card-name { font-size: 1.5rem; font-weight: 800; color: #1a1a2e; }
-.cat-card-desc { font-size: .88rem; color: #777; line-height: 1.55; }
-.cat-card-score { margin-top: .4rem; }
-.cat-card-bar { height: 6px; background: #ebebeb; border-radius: 3px; overflow: hidden; margin-top: .3rem; }
-.cat-card-bar-fill { height: 100%; background: linear-gradient(90deg,#7748FF,#b08aff); border-radius: 3px; }
-.cat-card-score-label { font-size: .78rem; color: #999; margin-top: .25rem; }
 
+.cat-card-top { display: flex; align-items: center; gap: .9rem; margin-bottom: .5rem; }
 .cat-icon {
-  width: 44px; height: 44px; border-radius: 12px;
-  background: linear-gradient(135deg,#7748FF,#b08aff);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem; color: #fff; margin-bottom: .4rem;
+  width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #fff;
 }
+.rank-1 .cat-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.rank-2 .cat-icon { background: linear-gradient(135deg, #7748FF, #9d6fff); }
+
+.cat-rank {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; margin-bottom: .15rem;
+}
+.rank-1 .cat-rank { color: #d97706; }
+.rank-2 .cat-rank { color: #7748FF; }
+.cat-name { font-size: 1.2rem; font-weight: 800; color: #1a1a2e; }
+.cat-desc { font-size: .82rem; color: #777; line-height: 1.55; margin-bottom: .6rem; }
+
+.cat-bar-wrap { display: flex; align-items: center; gap: .8rem; }
+.cat-bar { flex: 1; height: 5px; background: #f0ecff; border-radius: 3px; overflow: hidden; }
+.cat-bar-fill { height: 100%; border-radius: 3px; }
+.rank-1 .cat-bar-fill { background: linear-gradient(90deg, #f59e0b, #fcd34d); }
+.rank-2 .cat-bar-fill { background: linear-gradient(90deg, #7748FF, #b08aff); }
+.cat-bar-lbl { font-size: .72rem; color: #bbb; white-space: nowrap; }
+
+.cat-traj-btn {
+  margin-top: .9rem; width: 100%; padding: .62rem;
+  border-radius: 12px; border: 1.5px solid #e0d8ff;
+  background: #faf8ff; color: #7748FF;
+  font-size: .82rem; font-weight: 700; font-family: 'Poppins', sans-serif;
+  cursor: pointer; transition: all .18s; display: flex; align-items: center;
+  justify-content: center; gap: .4rem;
+}
+.cat-traj-btn:hover { background: #ede9fe; border-color: #7748FF; }
+.rank-1 .cat-traj-btn { border-color: #fde68a; background: #fffbeb; color: #d97706; }
+.rank-1 .cat-traj-btn:hover { background: #fef3c7; border-color: #f59e0b; }
 
 /* ── RECOMMENDED COURSES ── */
-.section-label {
-  display: inline-block; background: rgba(255,255,255,.22);
-  backdrop-filter: blur(6px); color: #fff; font-weight: 700; font-size: 1rem;
-  padding: .45rem 1.3rem; border-radius: 12px; margin-bottom: 1.2rem;
+.courses-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1rem; margin-bottom: 1.8rem;
 }
 
-.rec-courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 1.1rem; margin-bottom: 2.5rem; }
-
-.rec-course-card {
-  background: #fff; border-radius: 18px; overflow: hidden;
-  box-shadow: 0 6px 30px rgba(40,0,120,.12); transition: transform .2s;
+.course-card {
+  background: #fff; border-radius: 18px; overflow: hidden; text-decoration: none;
+  box-shadow: 0 6px 30px rgba(40,0,120,.10);
+  transition: transform .2s, box-shadow .2s;
+  display: flex; flex-direction: column;
 }
-.rec-course-card:hover { transform: translateY(-4px); }
+.course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(40,0,120,.18);
+}
 
-.rec-course-img {
-  height: 130px; background: linear-gradient(135deg,#1e1b4b,#312e81);
+.course-img {
+  height: 120px; background: linear-gradient(135deg, #7748FF, #b08aff);
   position: relative; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
 }
-.rec-course-img img { width: 100%; height: 100%; object-fit: cover; }
-.rec-course-img-icon { font-size: 2.5rem; color: rgba(255,255,255,.25); }
-
-.rec-course-cat-badge {
-  position: absolute; top: 10px; left: 10px;
-  background: #7748FF; color: #fff; font-size: .75rem; font-weight: 700;
-  padding: .25rem .7rem; border-radius: 8px;
+.course-img img { width: 100%; height: 100%; object-fit: cover; }
+.course-img-ph { font-size: 2.2rem; color: rgba(255,255,255,.25); }
+.course-cat-badge {
+  position: absolute; top: 9px; left: 9px;
+  background: rgba(0,0,0,.35); backdrop-filter: blur(4px);
+  color: #fff; font-size: .68rem; font-weight: 700;
+  padding: .2rem .6rem; border-radius: 7px;
 }
+.course-arrow {
+  position: absolute; bottom: 9px; right: 9px;
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(255,255,255,.25); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: .8rem;
+  opacity: 0; transition: opacity .18s;
+}
+.course-card:hover .course-arrow { opacity: 1; }
 
-.rec-course-body { padding: 1rem 1.1rem 1.2rem; }
-.rec-course-name { font-size: .97rem; font-weight: 700; color: #1a1a2e; margin-bottom: .3rem; }
-.rec-course-desc { font-size: .82rem; color: #888; line-height: 1.5; }
+.course-body { padding: 1rem 1.1rem 1.2rem; flex: 1; display: flex; flex-direction: column; }
+.course-name { font-size: .92rem; font-weight: 700; color: #1a1a2e; margin-bottom: .3rem; line-height: 1.35; }
+.course-desc { font-size: .78rem; color: #888; line-height: 1.5; flex: 1; }
 
 /* ── ACTIONS ── */
-.result-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
-.btn-purple {
-  background: #fff; color: #7748FF; border: none; border-radius: 50px;
-  padding: .75rem 2.5rem; font-size: 1rem; font-weight: 700;
+.res-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: .5rem; }
+.btn-primary {
+  background: #fff; color: #7748FF; border: none;
+  padding: .82rem 2.2rem; border-radius: 14px; font-size: .97rem; font-weight: 700;
   font-family: 'Poppins', sans-serif; cursor: pointer; text-decoration: none;
-  box-shadow: 0 4px 20px rgba(0,0,0,.12); transition: background .2s, transform .15s;
-  display: inline-block;
+  box-shadow: 0 4px 20px rgba(0,0,0,.12);
+  transition: background .2s, transform .15s; display: inline-flex; align-items: center; gap: .5rem;
 }
-.btn-purple:hover { background: #f0e8ff; transform: translateY(-2px); color: #5c2ee0; }
-
-.btn-outline {
-  background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.5);
-  border-radius: 50px; padding: .7rem 2.2rem; font-size: 1rem; font-weight: 700;
+.btn-primary:hover { background: #f0e8ff; transform: translateY(-2px); color: #5c2ee0; }
+.btn-ghost {
+  background: rgba(255,255,255,.15); color: #fff;
+  border: 1.5px solid rgba(255,255,255,.35);
+  padding: .8rem 2rem; border-radius: 14px; font-size: .97rem; font-weight: 600;
   font-family: 'Poppins', sans-serif; cursor: pointer; text-decoration: none;
-  transition: border-color .2s, background .2s; display: inline-block;
+  transition: background .2s; display: inline-flex; align-items: center; gap: .5rem;
 }
-.btn-outline:hover { border-color: #fff; background: rgba(255,255,255,.1); color: #fff; }
+.btn-ghost:hover { background: rgba(255,255,255,.25); color: #fff; }
 
-/* Footer */
-footer { background: linear-gradient(180deg,#5a2ee0,#7748FF) !important; color: rgba(255,255,255,.75) !important; padding: 3rem 0 1.5rem !important; }
-footer h5 { color: #fff !important; font-weight: 700 !important; }
-footer ul li a { color: rgba(255,255,255,.68) !important; }
-footer ul li a:hover { color: #ffe866 !important; }
+footer { background: linear-gradient(180deg, #5a2ee0, #7748FF) !important; color: rgba(255,255,255,.75) !important; }
+footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.68) !important; }
 
 @media (max-width: 600px) {
-  .result-title { font-size: 2rem; }
+  .res-hero { flex-direction: column; text-align: center; }
+  .res-hero-title { font-size: 1.5rem; }
   .cats-grid { grid-template-columns: 1fr; }
+  .courses-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 420px) {
+  .courses-grid { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
@@ -110,39 +189,45 @@ footer ul li a:hover { color: #ffe866 !important; }
 <div class="bg-blob-wrap">
   <div class="bg-blob bg-blob-1"></div>
   <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
 </div>
 
-<div class="result-wrapper">
+<div class="res-wrap">
 
-  <h1 class="result-title">Тест пройден!</h1>
-  <p class="result-subtitle">Вот направления, которые подходят тебе больше всего</p>
+  {# ── HERO ── #}
+  <div class="res-hero">
+    <div class="res-hero-icon"><i class="bi bi-patch-check-fill"></i></div>
+    <div class="res-hero-body">
+      <div class="res-hero-label">Вступительный тест завершён</div>
+      <div class="res-hero-title">Тест пройден!</div>
+      <div class="res-hero-sub">Вот направления, которые подходят тебе больше всего, и курсы для старта</div>
+    </div>
+  </div>
 
   {# ── TOP CATEGORIES ── #}
   {% if top_cats %}
+  <div class="sec-heading">Твои склонности</div>
   <div class="cats-grid">
     {% for cat, score in top_cats %}
-    <div class="cat-card">
-      {# Иконка по имени категории #}
-      <div class="cat-icon">
-        {% if "дизайн" in cat.name|lower %}
-          <i class="bi bi-palette-fill"></i>
-        {% elif "программ" in cat.name|lower %}
-          <i class="bi bi-code-slash"></i>
-        {% elif "копир" in cat.name|lower or "текст" in cat.name|lower %}
-          <i class="bi bi-pen-fill"></i>
-        {% elif "маркет" in cat.name|lower %}
-          <i class="bi bi-graph-up-arrow"></i>
-        {% else %}
-          <i class="bi bi-star-fill"></i>
-        {% endif %}
+    <div class="cat-card rank-{{ forloop.counter }}">
+      <div class="cat-card-top">
+        <div class="cat-icon">
+          {% if "дизайн" in cat.name|lower %}<i class="bi bi-palette-fill"></i>
+          {% elif "программ" in cat.name|lower %}<i class="bi bi-code-slash"></i>
+          {% elif "копир" in cat.name|lower or "текст" in cat.name|lower %}<i class="bi bi-pen-fill"></i>
+          {% elif "маркет" in cat.name|lower %}<i class="bi bi-graph-up-arrow"></i>
+          {% else %}<i class="bi bi-star-fill"></i>
+          {% endif %}
+        </div>
+        <div>
+          <div class="cat-rank">
+            {% if forloop.first %}🥇 Главная склонность{% else %}🥈 Вторая склонность{% endif %}
+          </div>
+          <div class="cat-name">{{ cat.name }}</div>
+        </div>
       </div>
 
-      <div class="cat-card-rank">
-        {% if forloop.first %}🥇 Главная склонность{% else %}🥈 Вторая склонность{% endif %}
-      </div>
-      <div class="cat-card-name">{{ cat.name }}</div>
-
-      <div class="cat-card-desc">
+      <div class="cat-desc">
         {% if "дизайн" in cat.name|lower %}
           Тебе интересно создавать визуальные образы, работать с цветом, формой и интерфейсами.
         {% elif "программ" in cat.name|lower %}
@@ -152,62 +237,23 @@ footer ul li a:hover { color: #ffe866 !important; }
         {% elif "маркет" in cat.name|lower %}
           Тебя привлекает анализ аудитории, продвижение и работа со стратегией.
         {% else %}
-          Это направление соответствует твоим ответам.
+          Это направление соответствует твоим ответам лучше всего.
         {% endif %}
       </div>
 
-      <div class="cat-card-score">
-        <div class="cat-card-bar">
-          <div class="cat-card-bar-fill" style="width: {% widthratio score 10 100 %}%"></div>
+      <div class="cat-bar-wrap">
+        <div class="cat-bar">
+          <div class="cat-bar-fill" style="width: {% widthratio score 10 100 %}%"></div>
         </div>
-        <div class="cat-card-score-label">{{ score }} совпадений из 10</div>
+        <span class="cat-bar-lbl">{{ score }}/10</span>
       </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
 
-  {# ── RECOMMENDED COURSES ── #}
-  {% if recommended_courses %}
-  <div class="section-label">Подходящие курсы</div>
-  <div class="rec-courses-grid">
-    {% for course, cat in recommended_courses %}
-    <div class="rec-course-card">
-      <div class="rec-course-img">
-        {% if course.image %}
-          <img src="{{ course.image.url }}" alt="{{ course.name }}">
-        {% else %}
-          <i class="bi bi-book-fill rec-course-img-icon"></i>
-        {% endif %}
-        <span class="rec-course-cat-badge">{{ cat.name }}</span>
-      </div>
-      <div class="rec-course-body">
-        <div class="rec-course-name">{{ course.name }}</div>
-        <div class="rec-course-desc">{{ course.description|truncatechars:70 }}</div>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <p style="color:rgba(255,255,255,.65); font-size:.95rem; margin-bottom:2rem;">
-    Курсы по твоим направлениям пока добавляются — загляни позже.
-  </p>
-  {% endif %}
-
-  {# ── GENERATE TRAJECTORY ── #}
-  {% if top_cats %}
-  <div class="section-label">Сгенерировать траекторию</div>
-  <div class="cats-grid" style="margin-bottom:2.5rem;">
-    {% for cat, score in top_cats %}
-    <div class="cat-card" style="text-align:center;">
-      <div class="cat-card-name" style="font-size:1.15rem;">{{ cat.name }}</div>
-      <div class="cat-card-desc" style="font-size:.85rem;">Выбери это направление и мы составим индивидуальный план обучения</div>
-      <form method="post" action="{% url 'generate_trajectory' %}" style="margin-top:.8rem;">
+      <form method="post" action="{% url 'generate_trajectory' %}">
         {% csrf_token %}
         <input type="hidden" name="session_id" value="{{ session.id }}">
         <input type="hidden" name="category_id" value="{{ cat.id }}">
-        <button type="submit" class="btn-purple" style="font-size:.9rem; padding:.6rem 1.8rem;">
-          <i class="bi bi-signpost-split-fill"></i> Выбрать
+        <button type="submit" class="cat-traj-btn">
+          <i class="bi bi-signpost-split-fill"></i> Построить траекторию
         </button>
       </form>
     </div>
@@ -215,10 +261,42 @@ footer ul li a:hover { color: #ffe866 !important; }
   </div>
   {% endif %}
 
+  {# ── RECOMMENDED COURSES ── #}
+  {% if recommended_courses %}
+  <div class="sec-heading">Подходящие курсы</div>
+  <div class="courses-grid">
+    {% for course, cat in recommended_courses %}
+    <a href="{% url 'course_detail' course.id %}" class="course-card">
+      <div class="course-img">
+        {% if course.image %}
+          <img src="{{ course.image.url }}" alt="{{ course.name }}">
+        {% else %}
+          <i class="bi bi-book-fill course-img-ph"></i>
+        {% endif %}
+        <span class="course-cat-badge">{{ cat.name }}</span>
+        <div class="course-arrow"><i class="bi bi-arrow-right"></i></div>
+      </div>
+      <div class="course-body">
+        <div class="course-name">{{ course.name }}</div>
+        <div class="course-desc">{{ course.description|truncatechars:75 }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:rgba(255,255,255,.5); font-size:.9rem; margin-bottom:2rem;">
+    Курсы по твоим направлениям скоро появятся — загляни позже.
+  </p>
+  {% endif %}
+
   {# ── ACTIONS ── #}
-  <div class="result-actions">
-    <a href="{% url 'available_courses' %}" class="btn-purple">Смотреть все курсы</a>
-    <a href="{% url 'student_dashboard' %}" class="btn-outline">В личный кабинет</a>
+  <div class="res-actions">
+    <a href="{% url 'available_courses' %}" class="btn-primary">
+      <i class="bi bi-collection-play-fill"></i> Все курсы
+    </a>
+    <a href="{% url 'student_dashboard' %}" class="btn-ghost">
+      <i class="bi bi-house-fill"></i> Личный кабинет
+    </a>
   </div>
 
 </div>

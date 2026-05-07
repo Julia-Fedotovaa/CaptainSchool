@@ -278,7 +278,7 @@ footer ul li a { color: rgba(255,255,255,.68) !important; }
 
     {% if child_courses %}
       <div class="ac-section-title">
-        <i class="bi bi-person-hearts"></i> Курсы ребёнка
+        <i class="bi bi-person-hearts"></i> Курсы детей
         <span class="ac-count">{{ child_courses|length }}</span>
       </div>
       <div class="ac-grid">
@@ -294,7 +294,14 @@ footer ul li a { color: rgba(255,255,255,.68) !important; }
                 <span><i class="bi bi-collection-play"></i> {{ course.lessons_count }} {{ course.lessons_count|pluralize_lessons }}</span>
               </div>
               <div class="ac-card-footer">
-                <span class="ac-card-btn ac-btn-enrolled"><i class="bi bi-check-circle-fill"></i> Ребёнок записан</span>
+                <span class="ac-card-btn ac-btn-enrolled">
+                  <i class="bi bi-check-circle-fill"></i>
+                  {% if course.enrolled_child_names|length == 1 %}
+                    {{ course.enrolled_child_names.0 }} записан
+                  {% else %}
+                    {{ course.enrolled_child_names|join:", " }} записаны
+                  {% endif %}
+                </span>
               </div>
             </div>
           </a>

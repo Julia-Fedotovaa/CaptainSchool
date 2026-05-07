@@ -1,0 +1,242 @@
+{% extends "base_template.html" %}
+{% load static %}
+
+{% block title %}Проверка ответов — {{ lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+body { background: #1a1a2e; }
+.site-header { position: relative !important; background: transparent; padding: 1.5rem 0; }
+.site-header .logo, .site-header .nav a { color: #fff !important; }
+
+.review-wrap {
+  max-width: 720px; margin: 0 auto; padding: 0 1.5rem 5rem;
+}
+
+/* ── BACK LINK ── */
+.back-link {
+  display: inline-flex; align-items: center; gap: .45rem;
+  color: rgba(255,255,255,.5); font-size: .82rem; font-weight: 600;
+  text-decoration: none; margin-bottom: 1.6rem;
+  transition: color .15s;
+}
+.back-link:hover { color: rgba(255,255,255,.85); }
+
+/* ── HEADER CARD ── */
+.review-header-card {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 20px; padding: 1.6rem 2rem; margin-bottom: 1.5rem;
+  display: flex; align-items: center; gap: 1.4rem;
+}
+.review-header-icon {
+  width: 54px; height: 54px; border-radius: 14px;
+  background: #EAB308; display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; color: #fff; flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(234,179,8,.4);
+}
+.review-header-body { flex: 1; min-width: 0; }
+.review-header-label {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: rgba(255,255,255,.4); margin-bottom: .2rem;
+}
+.review-header-lesson {
+  font-size: 1.15rem; font-weight: 800; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: .25rem;
+}
+.review-header-student {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: .85rem; font-weight: 600; color: rgba(255,255,255,.55);
+}
+.review-header-student i { font-size: .8rem; }
+.review-sub-count {
+  flex-shrink: 0; background: rgba(234,179,8,.2); border: 1px solid rgba(234,179,8,.4);
+  color: #EAB308; font-size: .78rem; font-weight: 700;
+  padding: .3rem .75rem; border-radius: 9px;
+}
+
+/* ── SUBMISSION CARDS ── */
+.sub-card {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 18px; padding: 1.4rem 1.6rem; margin-bottom: 1rem;
+}
+.sub-num {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: rgba(255,255,255,.35); margin-bottom: .5rem;
+}
+.sub-question {
+  font-size: .95rem; font-weight: 700; color: #fff; margin-bottom: .9rem;
+  line-height: 1.45;
+}
+.sub-answer-label {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: rgba(255,255,255,.35); margin-bottom: .35rem;
+}
+.sub-answer-text {
+  font-size: .92rem; color: rgba(255,255,255,.85); font-style: italic;
+  background: rgba(119,72,255,.14); border-left: 3px solid #7748FF;
+  border-radius: 0 10px 10px 0; padding: .65rem 1rem;
+  margin-bottom: 1.1rem; line-height: 1.5;
+}
+
+/* ── RADIO VERDICT ── */
+.verdict-row {
+  display: flex; gap: 1rem; margin-bottom: .75rem;
+}
+.verdict-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .65rem 1rem; border-radius: 12px; cursor: pointer;
+  font-size: .88rem; font-weight: 700; transition: all .18s;
+  border: 2px solid transparent; user-select: none;
+}
+.verdict-btn input[type=radio] { display: none; }
+.verdict-btn.correct-opt {
+  background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.25); color: #4ade80;
+}
+.verdict-btn.correct-opt.selected,
+.verdict-btn.correct-opt:has(input:checked) {
+  background: rgba(34,197,94,.22); border-color: #22c55e; color: #4ade80;
+  box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+}
+.verdict-btn.incorrect-opt {
+  background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.25); color: #f87171;
+}
+.verdict-btn.incorrect-opt.selected,
+.verdict-btn.incorrect-opt:has(input:checked) {
+  background: rgba(239,68,68,.22); border-color: #ef4444; color: #f87171;
+  box-shadow: 0 0 0 3px rgba(239,68,68,.15);
+}
+
+/* ── COMMENT ── */
+.comment-block { display: none; margin-top: .3rem; }
+.comment-block textarea {
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.15);
+  border-radius: 12px; padding: .75rem 1rem;
+  font-size: .88rem; color: #fff; font-family: 'Poppins', sans-serif;
+  resize: vertical; min-height: 80px; outline: none;
+  transition: border-color .15s;
+}
+.comment-block textarea::placeholder { color: rgba(255,255,255,.3); }
+.comment-block textarea:focus { border-color: rgba(255,255,255,.4); }
+.comment-label {
+  font-size: .72rem; font-weight: 700; color: rgba(255,255,255,.4);
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: .4rem;
+}
+
+/* ── SUBMIT ── */
+.review-actions {
+  display: flex; gap: 1rem; margin-top: 1.8rem; flex-wrap: wrap;
+}
+.btn-submit-review {
+  background: #7748FF; color: #fff; border: none;
+  padding: .85rem 2.4rem; border-radius: 14px; font-size: .97rem; font-weight: 700;
+  font-family: 'Poppins', sans-serif; cursor: pointer;
+  transition: background .2s, transform .15s;
+  display: inline-flex; align-items: center; gap: .5rem;
+}
+.btn-submit-review:hover { background: #5c2ee0; transform: translateY(-2px); }
+.btn-cancel {
+  background: rgba(255,255,255,.1); color: rgba(255,255,255,.7);
+  border: 1px solid rgba(255,255,255,.15); padding: .83rem 1.8rem;
+  border-radius: 14px; font-size: .97rem; font-weight: 600;
+  font-family: 'Poppins', sans-serif; cursor: pointer;
+  text-decoration: none; display: inline-flex; align-items: center;
+  transition: background .2s;
+}
+.btn-cancel:hover { background: rgba(255,255,255,.18); color: #fff; }
+
+footer {
+  background: rgba(255,255,255,.04) !important;
+  color: rgba(255,255,255,.3) !important;
+  border-top: 1px solid rgba(255,255,255,.07) !important;
+}
+footer h5 { color: rgba(255,255,255,.6) !important; }
+footer ul li a { color: rgba(255,255,255,.35) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-wrap">
+
+  <a href="{% url 'mentor_dashboard' %}" class="back-link">
+    <i class="bi bi-arrow-left"></i> Личный кабинет
+  </a>
+
+  {# ── HEADER ── #}
+  <div class="review-header-card">
+    <div class="review-header-icon"><i class="bi bi-hourglass-split"></i></div>
+    <div class="review-header-body">
+      <div class="review-header-label">Проверка развёрнутых ответов</div>
+      <div class="review-header-lesson">{{ lesson.title }}</div>
+      <div class="review-header-student">
+        <i class="bi bi-person-fill"></i>
+        {{ student.user.get_full_name }}
+      </div>
+    </div>
+    <div class="review-sub-count">{{ submissions|length }} отв.</div>
+  </div>
+
+  {# ── FORM ── #}
+  <form method="post" action="{% url 'mentor_review_submit' lesson.id student.pk %}">
+    {% csrf_token %}
+
+    {% for sub in submissions %}
+    <div class="sub-card">
+      <div class="sub-num">Вопрос {{ forloop.counter }}</div>
+      <div class="sub-question">{{ sub.card.title|default:sub.card.content }}</div>
+
+      <div class="sub-answer-label">Ответ ученика</div>
+      <div class="sub-answer-text">{{ sub.student_text }}</div>
+
+      <div class="verdict-row">
+        <label class="verdict-btn correct-opt" id="lbl-approved-{{ sub.id }}">
+          <input type="radio" name="result_{{ sub.id }}" value="approved" required>
+          <i class="bi bi-check-circle-fill"></i> Верно
+        </label>
+        <label class="verdict-btn incorrect-opt" id="lbl-rejected-{{ sub.id }}">
+          <input type="radio" name="result_{{ sub.id }}" value="rejected">
+          <i class="bi bi-x-circle-fill"></i> Неверно
+        </label>
+      </div>
+
+      <div class="comment-block" id="comment-block-{{ sub.id }}">
+        <div class="comment-label">Правильный ответ (будет показан ученику)</div>
+        <textarea name="comment_{{ sub.id }}"
+                  placeholder="Напишите правильный ответ..."></textarea>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="review-actions">
+      <button type="submit" class="btn-submit-review">
+        <i class="bi bi-check2-all"></i> Подтвердить проверку
+      </button>
+      <a href="{% url 'mentor_dashboard' %}" class="btn-cancel">Отмена</a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('change', function(e) {
+  var t = e.target;
+  if (t.type !== 'radio' || !t.name || !t.name.startsWith('result_')) return;
+  var subId = t.name.slice(7);
+
+  // toggle comment block
+  var cb = document.getElementById('comment-block-' + subId);
+  if (cb) cb.style.display = (t.value === 'rejected') ? 'block' : 'none';
+
+  // visual selected state on labels
+  var la = document.getElementById('lbl-approved-' + subId);
+  var lr = document.getElementById('lbl-rejected-' + subId);
+  if (la && lr) {
+    la.classList.toggle('selected', t.value === 'approved');
+    lr.classList.toggle('selected', t.value === 'rejected');
+  }
+});
+</script>
+{% endblock %}

@@ -187,21 +187,21 @@
       <div class="role-cards" id="role-cards">
 
         <label class="role-card-label" id="role-label-student">
-          <input type="radio" name="role" value="student" checked>
+          <input type="radio" name="role" value="student" {% if form.role.value != 'parent' and form.role.value != 'mentor' %}checked{% endif %}>
           <div class="role-card-check"><i class="bi bi-check2"></i></div>
           <div class="role-card-icon"><i class="bi bi-mortarboard-fill"></i></div>
           <span class="role-card-name">Ученик</span>
         </label>
 
         <label class="role-card-label" id="role-label-parent">
-          <input type="radio" name="role" value="parent">
+          <input type="radio" name="role" value="parent" {% if form.role.value == 'parent' %}checked{% endif %}>
           <div class="role-card-check"><i class="bi bi-check2"></i></div>
           <div class="role-card-icon"><i class="bi bi-people-fill"></i></div>
           <span class="role-card-name">Родитель</span>
         </label>
 
         <label class="role-card-label" id="role-label-mentor">
-          <input type="radio" name="role" value="mentor">
+          <input type="radio" name="role" value="mentor" {% if form.role.value == 'mentor' %}checked{% endif %}>
           <div class="role-card-check"><i class="bi bi-check2"></i></div>
           <div class="role-card-icon"><i class="bi bi-person-badge-fill"></i></div>
           <span class="role-card-name">Ментор</span>
@@ -290,11 +290,20 @@ function updateRoleCards() {
   });
 }
 
-// Инициализация
+// Восстанавливаем выбор из localStorage
+const savedRole = localStorage.getItem('register_role');
+if (savedRole) {
+  roleInputs.forEach(input => {
+    input.checked = (input.value === savedRole);
+  });
+}
 updateRoleCards();
 
 roleInputs.forEach(input => {
-  input.addEventListener('change', updateRoleCards);
+  input.addEventListener('change', function() {
+    localStorage.setItem('register_role', this.value);
+    updateRoleCards();
+  });
 });
 
 /* ── Password toggle ── */
@@ -309,6 +318,7 @@ function togglePwd(btn) {
     icon.className = 'bi bi-eye';
   }
 }
+
 </script>
 </body>
 </html>

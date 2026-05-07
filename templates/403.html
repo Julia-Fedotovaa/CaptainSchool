@@ -1,0 +1,26 @@
+{% extends "_error_base.html" %}
+
+{% block page_title %}Нет доступа{% endblock %}
+
+{% block accent_color %}#ef4444{% endblock %}
+{% block accent_color2 %}#ef4444{% endblock %}
+{% block accent_color3 %}#f87171{% endblock %}
+{% block icon_bg %}linear-gradient(135deg, #ef4444, #f87171){% endblock %}
+{% block icon_shadow %}0 8px 24px rgba(239, 68, 68, .35){% endblock %}
+
+{% block error_code %}403{% endblock %}
+{% block error_icon %}bi-shield-x{% endblock %}
+{% block error_title %}Нет доступа{% endblock %}
+{% block error_desc %}
+  У&nbsp;вас недостаточно прав для просмотра этой страницы.<br>
+  Войдите в&nbsp;аккаунт или обратитесь к&nbsp;администратору.
+{% endblock %}
+
+{% block buttons %}
+<button class="btn-back" onclick="history.back()">
+  <i class="bi bi-arrow-left"></i> Назад
+</button>
+<a href="/login/" class="btn-home">
+  <i class="bi bi-box-arrow-in-right"></i> Войти
+</a>
+{% endblock %}

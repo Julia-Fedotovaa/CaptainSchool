@@ -19,7 +19,7 @@ from apps.users.models import User
 # ─────────────────────────────────────────────────────────
 #  HELPER: редирект в нужный кабинет по роли
 # ─────────────────────────────────────────────────────────
-def redirect_by_role(user):
+def redirect_by_role(user, check_placement=False):
     role = user.role
     if role == User.Role.ADMIN:
         return redirect("admin_dashboard")
@@ -27,6 +27,20 @@ def redirect_by_role(user):
         return redirect("mentor_dashboard")
     if role == User.Role.PARENT:
         return redirect("parent_dashboard")
+    # Student: если только что зарегистрировался — проверяем вступительный тест
+    if check_placement:
+        from apps.education.models import PlacementTestSession
+        from apps.students.models import Student
+        try:
+            student = Student.objects.get(user=user)
+            has_done = PlacementTestSession.objects.filter(
+                student=student,
+                status=PlacementTestSession.STATUS_COMPLETED,
+            ).exists()
+            if not has_done:
+                return redirect("placement_test_start")
+        except Student.DoesNotExist:
+            pass
     return redirect("student_dashboard")
 
 
@@ -71,7 +85,7 @@ class RegisterView(View):
             user = form.save()
             # Профиль создаётся автоматически через post_save сигнал
             login(request, user)
-            return redirect_by_role(user)
+            return redirect_by_role(user, check_placement=True)
         return render(request, self.template_name, {"form": form})
 
 
@@ -188,7 +202,7 @@ class MentorDashboardView(RoleRequiredMixin, TemplateView):
     allowed_roles = (User.Role.MENTOR,)
 
     def get_context_data(self, **kwargs):
-        from apps.education.models import Course, Schedule, Enrollment
+        from apps.education.models import Course, Schedule, Enrollment, OpenAnswerSubmission, LessonProgress
         from apps.mentors.models import Mentor
 
         ctx = super().get_context_data(**kwargs)
@@ -221,6 +235,27 @@ class MentorDashboardView(RoleRequiredMixin, TemplateView):
         all_courses = Course.objects.select_related("category").all()
         my_course_ids = set(courses.values_list("id", flat=True))
 
+        # Развёрнутые ответы, ожидающие проверки по курсам этого ментора
+        pending_subs = (
+            OpenAnswerSubmission.objects
+            .filter(lesson__course__mentors=mentor,
+                    status=OpenAnswerSubmission.STATUS_PENDING)
+            .select_related("student__user", "lesson", "card")
+            .order_by("submitted_at")
+        )
+        # Группируем по (lesson, student)
+        pending_reviews = {}
+        for sub in pending_subs:
+            key = (sub.lesson_id, sub.student_id)
+            if key not in pending_reviews:
+                pending_reviews[key] = {
+                    "lesson":  sub.lesson,
+                    "student": sub.student,
+                    "subs":    [],
+                }
+            pending_reviews[key]["subs"].append(sub)
+        pending_reviews = list(pending_reviews.values())
+
         ctx.update({
             "mentor": mentor,
             "courses": courses,
@@ -231,6 +266,7 @@ class MentorDashboardView(RoleRequiredMixin, TemplateView):
             "total_courses": courses.count(),
             "total_students": total_students,
             "upcoming_webinars_count": upcoming_count,
+            "pending_reviews": pending_reviews,
         })
         return ctx
 
@@ -241,7 +277,7 @@ class StudentDashboardView(RoleRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         from apps.students.models import Student, StudentStats, StudentBadge
-        from apps.education.models import Enrollment, Schedule
+        from apps.education.models import Enrollment, Schedule, PlacementTestSession
         from apps.progress.models import Progress
 
         ctx = super().get_context_data(**kwargs)
@@ -288,6 +324,11 @@ class StudentDashboardView(RoleRequiredMixin, TemplateView):
         webinar_dates = list(upcoming_webinars.values_list("date", flat=True))
         webinar_dates_json = json.dumps([str(d) for d in webinar_dates])
 
+        placement_done = PlacementTestSession.objects.filter(
+            student=student,
+            status=PlacementTestSession.STATUS_COMPLETED,
+        ).exists()
+
         ctx.update({
             "student":            student,
             "enrollments":        enrollments,
@@ -296,6 +337,7 @@ class StudentDashboardView(RoleRequiredMixin, TemplateView):
             "badges":             badges,
             "upcoming_webinars":  upcoming_webinars,
             "webinar_dates":      webinar_dates_json,
+            "placement_done":     placement_done,
         })
         return ctx
 
@@ -403,6 +445,29 @@ def home(request):
     return render(request, "home.html", {"top_courses": courses})
 
 
+def contact_submit(request):
+    from apps.common.models import ContactMessage
+    sent = False
+    if request.method == "POST":
+        name    = request.POST.get("name", "").strip()
+        email   = request.POST.get("email", "").strip()
+        message = request.POST.get("message", "").strip()
+        if name and email and message:
+            ContactMessage.objects.create(name=name, email=email, message=message)
+            sent = True
+
+    # Рендерим home с флагом — не делаем redirect, чтобы показать зелёное сообщение
+    courses = (
+        Course.objects
+        .annotate(review_count=Count("reviews"), avg_rating=Avg("reviews__rating"))
+        .order_by("-review_count", "-avg_rating")[:3]
+    )
+    placeholders = ["course_web.png", "course_writing.png", "course_design.png"]
+    for idx, course in enumerate(courses):
+        course.placeholder = None if getattr(course, "image", None) else placeholders[idx % len(placeholders)]
+    return render(request, "home.html", {"top_courses": courses, "contact_sent": sent})
+
+
 def all_courses(request):
     from apps.education.models import Enrollment
     from apps.progress.models import Progress
@@ -420,6 +485,7 @@ def all_courses(request):
     progress_map = {}
     my_course_ids = set()  # для ментора
     children_enrolled_ids = set()
+    children_enrolled_names = {}   # course_id → [child_name, ...]
 
     user = request.user
     if user.is_authenticated:
@@ -443,16 +509,20 @@ def all_courses(request):
             from apps.students.models import Parent
             parent = Parent.objects.filter(user=user).first()
             if parent:
-                child_ids = parent.students.values_list("pk", flat=True)
-                children_enrolled_ids = set(
-                    Enrollment.objects.filter(student_id__in=child_ids).values_list("course_id", flat=True)
-                )
+                # course_id → list of enrolled child names
+                for s in parent.students.select_related("user").all():
+                    for eid in Enrollment.objects.filter(student=s).values_list("course_id", flat=True):
+                        children_enrolled_ids.add(eid)
+                        children_enrolled_names.setdefault(eid, []).append(
+                            s.user.get_full_name() or s.user.username
+                        )
 
     for c in courses:
         c.is_enrolled = c.id in enrolled_ids
         c.progress_percent = progress_map.get(c.id, 0)
         c.is_my_course = c.id in my_course_ids
         c.child_enrolled = c.id in children_enrolled_ids
+        c.enrolled_child_names = children_enrolled_names.get(c.id, [])
         c.lessons_count = c.lessons.count()
 
     # Pre-split into sections for clean template rendering

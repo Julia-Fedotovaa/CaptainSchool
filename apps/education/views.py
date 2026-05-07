@@ -11,7 +11,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, T
 from apps.common.mixins import RoleRequiredMixin, FormTitleMixin
 from apps.users.models import User
 from .models import Track, Course, Schedule, Enrollment, PlacementTest, PlacementTestSession, PlacementQuestion, \
-    PlacementAnswer, ChoiceOption
+    PlacementAnswer, ChoiceOption, LessonProgress
 from ..students.models import Student
 
 
@@ -74,12 +74,25 @@ class CourseCreateView(RoleRequiredMixin, FormTitleMixin, CreateView):
         return response
 
 
-class CourseUpdateView(RoleRequiredMixin, FormTitleMixin, UpdateView):
+class CourseUpdateView(RoleRequiredMixin, UpdateView):
     model = Course
     fields = ["track", "name", "description", "category", "image", "format", "duration_hours"]
-    template_name = "common/form.html"
+    template_name = "education/course_edit.html"
     allowed_roles = (User.Role.ADMIN, User.Role.MENTOR)
-    form_title_update = "Редактирование курса"
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            course = form.save(commit=False)
+            if request.POST.get("image_clear") == "1":
+                if course.image:
+                    course.image.delete(save=False)
+                course.image = None
+            course.save()
+            form.save_m2m()
+            return redirect(self.get_success_url())
+        return self.form_invalid(form)
 
     def get_success_url(self):
         if self.request.user.role == User.Role.MENTOR:
@@ -116,7 +129,7 @@ class ScheduleCreateView(RoleRequiredMixin, CreateView):
     model = Schedule
     fields = ["course", "date", "start_time", "end_time", "lesson_format", "location", "description"]
     template_name = "education/schedule_form.html"
-    success_url = reverse_lazy("schedule_list")
+    success_url = reverse_lazy("mentor_dashboard")
     allowed_roles = (User.Role.ADMIN, User.Role.MENTOR)
 
     def get_form(self, form_class=None):
@@ -192,7 +205,7 @@ class ScheduleUpdateView(RoleRequiredMixin, UpdateView):
 class ScheduleDeleteView(RoleRequiredMixin, DeleteView):
     model = Schedule
     template_name = "common/confirm_delete.html"
-    success_url = reverse_lazy("schedule_list")
+    success_url = reverse_lazy("mentor_dashboard")
     allowed_roles = (User.Role.ADMIN, User.Role.MENTOR)
 
 
@@ -452,7 +465,7 @@ class CourseDetailView(LoginRequiredMixin, View):
         lesson_progress_map = {}
         course_progress     = None
         is_mentor_course    = False
-        child_enrolled      = False
+        children_status     = []
 
         user = request.user
 
@@ -475,15 +488,20 @@ class CourseDetailView(LoginRequiredMixin, View):
                 if mentor:
                     is_mentor_course = course.mentors.filter(pk=mentor.pk).exists()
 
-            # Родитель — проверяем, записан ли хотя бы один ребёнок
+            # Родитель — список детей с признаком записи
             elif user.role == User.Role.PARENT:
                 from apps.students.models import Parent
                 parent = Parent.objects.filter(user=user).first()
                 if parent:
-                    child_ids = parent.students.values_list("pk", flat=True)
-                    child_enrolled = Enrollment.objects.filter(
-                        student_id__in=child_ids, course=course
-                    ).exists()
+                    enrolled_child_ids = set(
+                        Enrollment.objects.filter(
+                            student__in=parent.students.all(), course=course
+                        ).values_list("student_id", flat=True)
+                    )
+                    children_status = [
+                        {"student": s, "enrolled": s.pk in enrolled_child_ids}
+                        for s in parent.students.select_related("user").all()
+                    ]
 
         for lesson in lessons:
             lesson.progress = lesson_progress_map.get(lesson.id)
@@ -501,21 +519,26 @@ class CourseDetailView(LoginRequiredMixin, View):
             "completed_lessons": completed_count,
             "total_lessons":     len(lessons),
             "is_mentor_course":  is_mentor_course,
-            "child_enrolled":    child_enrolled,
+            "children_status":   children_status,
         })
 
     def post(self, request, course_id):
         course = get_object_or_404(Course, id=course_id)
         action = request.POST.get("action")
 
-        # Действие родителя — записать ребёнка
-        if action == "enroll_child":
+        # Действия родителя — записать / отписать конкретного ребёнка
+        if action in ("enroll_child", "unenroll_child"):
             if request.user.role == User.Role.PARENT:
-                from apps.students.models import Parent
+                from apps.students.models import Parent, Student as SM
                 parent = Parent.objects.filter(user=request.user).first()
-                if parent:
-                    for child in parent.students.all():
-                        Enrollment.objects.get_or_create(student=child, course=course)
+                child_id = request.POST.get("child_id")
+                if parent and child_id:
+                    child = SM.objects.filter(pk=child_id, parents=parent).first()
+                    if child:
+                        if action == "enroll_child":
+                            Enrollment.objects.get_or_create(student=child, course=course)
+                        else:
+                            Enrollment.objects.filter(student=child, course=course).delete()
             return redirect("course_detail", course_id=course_id)
 
         # Действия ученика
@@ -542,32 +565,25 @@ class LessonPlayerView(LoginRequiredMixin, View):
 
     def _lp(self, student, lesson):
         from .models import LessonProgress
+        # open_answer не считается в автоматическом счёте — только test+matching
+        auto_graded_count = lesson.cards.filter(card_type__in=["test", "matching"]).count()
         lp, created = LessonProgress.objects.get_or_create(
             student=student, lesson=lesson,
             defaults={
                 "status":           LessonProgress.STATUS_IN_PROGRESS,
-                "total_test_cards": lesson.cards.filter(card_type__in=["test", "matching", "open_answer"]).count(),
+                "total_test_cards": auto_graded_count,
                 "correct_answers":  0,
                 "current_card_index": 0,
             }
         )
-        # Если урок уже завершён — сбрасываем для повторного прохождения
-        if not created and lp.status == LessonProgress.STATUS_COMPLETED:
-            # Запоминаем предыдущий результат для comeback-достижения
-            lp._prev_score         = lp.score_percent
-            lp.status              = LessonProgress.STATUS_IN_PROGRESS
-            lp.current_card_index  = 0
-            lp.correct_answers     = 0
-            lp.total_test_cards    = lesson.cards.filter(card_type__in=["test", "matching", "open_answer"]).count()
-            lp.completed_at        = None
-            lp.save()
-        elif not created and lp.status == LessonProgress.STATUS_NOT_STARTED:
+        if not created and lp.status == LessonProgress.STATUS_NOT_STARTED:
             lp.status = LessonProgress.STATUS_IN_PROGRESS
             lp.save()
+        # COMPLETED и PENDING_REVIEW — не трогаем здесь: get() сам редиректит на результат
         return lp
 
     def get(self, request, lesson_id):
-        from .models import Lesson, LessonCard, CardChoice
+        from .models import Lesson, LessonCard, CardChoice, LessonProgress
 
         lesson  = get_object_or_404(Lesson, id=lesson_id)
         student = self._student(request)
@@ -575,7 +591,16 @@ class LessonPlayerView(LoginRequiredMixin, View):
         if not Enrollment.objects.filter(student=student, course=lesson.course).exists():
             return redirect("course_detail", course_id=lesson.course_id)
 
-        lp    = self._lp(student, lesson)
+        # Проверяем статус ДО вызова _lp(), чтобы не сбросить прогресс
+        existing_lp = LessonProgress.objects.filter(student=student, lesson=lesson).first()
+        if existing_lp and existing_lp.status in (
+            LessonProgress.STATUS_PENDING_REVIEW,
+            LessonProgress.STATUS_COMPLETED,
+        ):
+            return redirect("lesson_result", lesson_id=lesson_id)
+
+        lp = self._lp(student, lesson)
+
         cards = list(lesson.cards_ordered().prefetch_related("choices"))
 
         # Сериализуем карточки в JSON для JS
@@ -664,14 +689,23 @@ class LessonCardSubmitView(LoginRequiredMixin, View):
         elif card_type == "open_answer":
             user_text = data.get("user_text", "").strip()
             if user_text and card_index >= lp.current_card_index:
-                from .models import LessonCard
+                from .models import LessonCard, OpenAnswerSubmission
                 cards_at_idx = list(lesson.cards_ordered())
                 if card_index < len(cards_at_idx):
                     card_obj = cards_at_idx[card_index]
-                    accepted = list(card_obj.choices.values_list("text", flat=True))
-                    is_correct = _fuzzy_match(user_text, accepted)
-                    if is_correct:
-                        lp.correct_answers = (lp.correct_answers or 0) + 1
+                    # Сохраняем ответ для ручной проверки ментором
+                    OpenAnswerSubmission.objects.update_or_create(
+                        student=student, card=card_obj,
+                        defaults={
+                            "lesson":       lesson,
+                            "student_text": user_text,
+                            "status":       OpenAnswerSubmission.STATUS_PENDING,
+                            "mentor_comment": "",
+                            "reviewed_by":  None,
+                            "reviewed_at":  None,
+                        }
+                    )
+                    is_correct = None  # проверяет ментор, не автомат
 
         elif choice_id:
             try:
@@ -687,26 +721,32 @@ class LessonCardSubmitView(LoginRequiredMixin, View):
             lp.current_card_index = card_index + 1
 
         if is_last:
-            lp.status       = LessonProgress.STATUS_COMPLETED
-            lp.completed_at = tz.now()
-            lp.save()
-            _update_course_progress(student, lesson.course)
-            # Начисляем достижения
-            new_badge_codes = []
-            try:
-                from apps.students.badges import check_and_award, award_comeback, check_course_achievements
-                new_badge_codes = check_and_award(student, lesson.course, lesson_progress=lp)
-                # Курсо-специфичные достижения
-                new_badge_codes.extend(check_course_achievements(student, lesson.course))
-                # Comeback: если была пересдача и оценка улучшилась
-                prev = getattr(lp, '_prev_score', None)
-                if prev is not None:
-                    if award_comeback(student, lp, prev):
-                        new_badge_codes.append("comeback")
-            except Exception as e:
-                pass  # не ломаем урок из-за ошибки в системе наград
-            request.session["new_badge_codes"] = new_badge_codes
-            return JsonResponse({"ok": True, "finished": True})
+            has_open = lesson.cards.filter(card_type="open_answer").exists()
+            if has_open:
+                lp.status       = LessonProgress.STATUS_PENDING_REVIEW
+                lp.completed_at = tz.now()
+                lp.save()
+                _update_course_progress(student, lesson.course)
+                return JsonResponse({"ok": True, "finished": True, "pending_review": True})
+            else:
+                lp.status       = LessonProgress.STATUS_COMPLETED
+                lp.completed_at = tz.now()
+                lp.save()
+                _update_course_progress(student, lesson.course)
+                _update_student_stats(student, lp)
+                new_badge_codes = []
+                try:
+                    from apps.students.badges import check_and_award, award_comeback, check_course_achievements
+                    new_badge_codes = check_and_award(student, lesson.course, lesson_progress=lp)
+                    new_badge_codes.extend(check_course_achievements(student, lesson.course))
+                    prev = getattr(lp, '_prev_score', None)
+                    if prev is not None:
+                        if award_comeback(student, lp, prev):
+                            new_badge_codes.append("comeback")
+                except Exception:
+                    pass
+                request.session["new_badge_codes"] = new_badge_codes
+                return JsonResponse({"ok": True, "finished": True, "pending_review": False})
 
         lp.save()
         return JsonResponse({"ok": True, "finished": False, "is_correct": is_correct})
@@ -739,30 +779,161 @@ class LessonResultView(LoginRequiredMixin, View):
         else:
             recent_badges = StudentBadge.objects.none()
 
+        from .models import OpenAnswerSubmission
+        open_submissions = (
+            OpenAnswerSubmission.objects
+            .filter(student=student, lesson=lesson)
+            .select_related("card")
+            .order_by("card__order")
+        )
+
         return render(request, "education/lesson_result.html", {
-            "lesson":        lesson,
-            "lp":            lp,
-            "course":        lesson.course,
-            "next_lesson":   next_lesson,
-            "recent_badges": recent_badges,
+            "lesson":           lesson,
+            "lp":               lp,
+            "course":           lesson.course,
+            "next_lesson":      next_lesson,
+            "recent_badges":    recent_badges,
+            "open_submissions": open_submissions,
         })
 
 
 def _update_course_progress(student, course):
     from apps.progress.models import Progress
     from .models import LessonProgress
-    lessons   = list(course.lessons.all())
-    total     = len(lessons)
+    lessons = list(course.lessons.all())
+    total   = len(lessons)
     if not total:
         return
-    completed = LessonProgress.objects.filter(
-        student=student, lesson__in=lessons, status=LessonProgress.STATUS_COMPLETED
+    # pending_review тоже считается «пройденным» уроком для прогресса курса
+    done = LessonProgress.objects.filter(
+        student=student, lesson__in=lessons,
+        status__in=[LessonProgress.STATUS_COMPLETED, LessonProgress.STATUS_PENDING_REVIEW]
     ).count()
     Progress.objects.update_or_create(
         student=student, course=course,
-        defaults={"completion_percent": round(completed / total * 100),
-                  "result": f"{completed}/{total} уроков"}
+        defaults={"completion_percent": round(done / total * 100),
+                  "result": f"{done}/{total} уроков"}
     )
+
+def _update_student_stats(student, lp):
+    """Обновляет игровую статистику ученика после завершения урока."""
+    try:
+        from apps.students.models import StudentStats
+        stats, _ = StudentStats.objects.get_or_create(student=student)
+        stats.quizzes_passed  += 1
+        stats.correct_answers += (lp.correct_answers or 0)
+        if lp.completed_at and lp.started_at:
+            duration = int((lp.completed_at - lp.started_at).total_seconds())
+            if duration > 0 and (stats.best_time_seconds is None or duration < stats.best_time_seconds):
+                stats.best_time_seconds = duration
+        stats.save()
+    except Exception:
+        pass
+
+
+class LessonRetakeView(LoginRequiredMixin, View):
+    """Сбрасывает прогресс урока и перенаправляет в плеер для повторного прохождения."""
+
+    def post(self, request, lesson_id):
+        from .models import Lesson, LessonProgress, OpenAnswerSubmission
+        from apps.students.models import Student as SM
+
+        lesson  = get_object_or_404(Lesson, id=lesson_id)
+        student = get_object_or_404(SM, user=request.user)
+
+        if not Enrollment.objects.filter(student=student, course=lesson.course).exists():
+            return redirect("course_detail", course_id=lesson.course_id)
+
+        auto_graded_count = lesson.cards.filter(card_type__in=["test", "matching"]).count()
+        lp = LessonProgress.objects.filter(student=student, lesson=lesson).first()
+        if lp and lp.status == LessonProgress.STATUS_COMPLETED:
+            # Сохраняем предыдущий балл для бейджа «comeback»
+            lp._prev_score        = lp.score_percent
+            lp.status             = LessonProgress.STATUS_IN_PROGRESS
+            lp.current_card_index = 0
+            lp.correct_answers    = 0
+            lp.total_test_cards   = auto_graded_count
+            lp.completed_at       = None
+            lp.save()
+            # Сбрасываем старые ответы на открытые вопросы
+            OpenAnswerSubmission.objects.filter(student=student, lesson=lesson).delete()
+
+        return redirect("lesson_player", lesson_id=lesson_id)
+
+
+class MentorReviewSubmitView(RoleRequiredMixin, View):
+    """Ментор проверяет развёрнутые ответы ученика по конкретному уроку."""
+    allowed_roles = (User.Role.MENTOR, User.Role.ADMIN)
+
+    def get(self, request, lesson_id, student_id):
+        from .models import Lesson, LessonProgress, OpenAnswerSubmission
+        from apps.students.models import Student as SM
+
+        lesson  = get_object_or_404(Lesson, id=lesson_id)
+        student = get_object_or_404(SM, pk=student_id)
+        lp      = get_object_or_404(LessonProgress, student=student, lesson=lesson,
+                                     status=LessonProgress.STATUS_PENDING_REVIEW)
+        submissions = (OpenAnswerSubmission.objects
+                       .filter(student=student, lesson=lesson,
+                               status=OpenAnswerSubmission.STATUS_PENDING)
+                       .select_related("card")
+                       .order_by("card__order"))
+
+        return render(request, "education/mentor_review.html", {
+            "lesson":      lesson,
+            "student":     student,
+            "lp":          lp,
+            "course":      lesson.course,
+            "submissions": submissions,
+        })
+
+    def post(self, request, lesson_id, student_id):
+        from .models import Lesson, LessonProgress, OpenAnswerSubmission
+        from apps.mentors.models import Mentor
+        from apps.students.models import Student as SM
+
+        lesson  = get_object_or_404(Lesson, id=lesson_id)
+        student = get_object_or_404(SM, pk=student_id)
+        mentor  = get_object_or_404(Mentor, user=request.user)
+        lp      = get_object_or_404(LessonProgress, student=student, lesson=lesson,
+                                     status=LessonProgress.STATUS_PENDING_REVIEW)
+
+        submissions = list(OpenAnswerSubmission.objects.filter(
+            student=student, lesson=lesson, status=OpenAnswerSubmission.STATUS_PENDING
+        ))
+        total_open = len(submissions)
+        approved_count = 0
+        for sub in submissions:
+            result  = request.POST.get(f"result_{sub.id}")
+            comment = request.POST.get(f"comment_{sub.id}", "").strip()
+            if result in (OpenAnswerSubmission.STATUS_APPROVED,
+                          OpenAnswerSubmission.STATUS_REJECTED):
+                sub.status         = result
+                sub.mentor_comment = comment
+                sub.reviewed_by    = mentor
+                sub.reviewed_at    = tz.now()
+                sub.save()
+                if result == OpenAnswerSubmission.STATUS_APPROVED:
+                    approved_count += 1
+
+        # Включаем открытые вопросы в знаменатель, чтобы оценка была честной
+        lp.correct_answers  = (lp.correct_answers or 0) + approved_count
+        lp.total_test_cards = (lp.total_test_cards or 0) + total_open
+        lp.status           = LessonProgress.STATUS_COMPLETED
+        lp.save()
+        _update_course_progress(student, lesson.course)
+        _update_student_stats(student, lp)
+
+        # Начисляем достижения после полного завершения
+        try:
+            from apps.students.badges import check_and_award, check_course_achievements
+            check_and_award(student, lesson.course, lesson_progress=lp)
+            check_course_achievements(student, lesson.course)
+        except Exception:
+            pass
+
+        return redirect("mentor_dashboard")
+
 
 class CourseReviewView(LoginRequiredMixin, View):
     def post(self, request, course_id):

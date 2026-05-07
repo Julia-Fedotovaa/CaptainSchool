@@ -88,11 +88,18 @@
     <a href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'home' %}{% endif %}" class="logo" style="text-decoration:none;color:#fff;font-weight: 800;">EduPlatform</a>
 
     <ul class="nav">
-      <li><a href="{% url 'home' %}">Главная</a></li>
-      <li><a href="{% url 'about' %}">О нас</a></li>
-      <li><a href="{% url 'services' %}">Услуги</a></li>
-      <li><a href="{% url 'all_courses' %}">Курсы</a></li>
-      <li><a href="{% url 'home' %}#contact-form" class="contact-btn">Связаться</a></li>
+      {% if user.is_authenticated %}
+        <li>
+          <a href="{% if user.role == 'student' %}{% url 'student_dashboard' %}{% elif user.role == 'parent' %}{% url 'parent_dashboard' %}{% elif user.role == 'mentor' %}{% url 'mentor_dashboard' %}{% elif user.role == 'admin' %}{% url 'admin_dashboard' %}{% else %}{% url 'home' %}{% endif %}">Личный кабинет</a>
+        </li>
+        <li><a href="{% url 'all_courses' %}">Курсы</a></li>
+      {% else %}
+        <li><a href="{% url 'home' %}">Главная</a></li>
+        <li><a href="{% url 'about' %}">О нас</a></li>
+        <li><a href="{% url 'services' %}">Услуги</a></li>
+        <li><a href="{% url 'all_courses' %}">Курсы</a></li>
+      {% endif %}
+        <li><a href="{% url 'home' %}#contact-form" class="contact-btn">Связаться</a></li>
     </ul>
 
     <div class="nav-auth">
@@ -271,5 +278,395 @@ document.addEventListener('click', function() {
 });
 </script>
 {% block extra_js %}{% endblock %}
+
+{# ===== CHATBOT ===== #}
+<style>
+/* Floating button */
+.chat-fab {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 9000;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: linear-gradient(135deg, #7748FF, #5c2ee0);
+  border: none; cursor: pointer; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; box-shadow: 0 6px 28px rgba(119,72,255,.45);
+  transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 6px 28px rgba(117, 86, 204, 0.45);
+}
+.chat-fab:hover { transform: scale(1.08); box-shadow: 0 10px 36px rgba(119,72,255,.6); }
+.chat-fab .chat-fab-badge {
+  position: absolute; top: -3px; right: -3px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #22c55e; border: 2px solid #fff;
+}
+
+/* Chat window */
+.chat-window {
+  position: fixed; bottom: 6.5rem; right: 2rem; z-index: 9000;
+  width: 360px; max-height: 520px;
+  background: #fff; border-radius: 22px;
+  box-shadow: 0 16px 60px rgba(30,0,80,.2);
+  display: flex; flex-direction: column;
+  transform: scale(.92) translateY(20px);
+  opacity: 0; pointer-events: none;
+  transition: all .22s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+}
+.chat-window.open {
+  transform: scale(1) translateY(0);
+  opacity: 1; pointer-events: all;
+}
+
+/* Header */
+.chat-header {
+  background: linear-gradient(135deg, #7748FF, #5c2ee0);
+  padding: 1rem 1.2rem; display: flex; align-items: center; gap: .8rem;
+  flex-shrink: 0;
+}
+.chat-header-ava {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; color: #fff; flex-shrink: 0;
+}
+.chat-header-info { flex: 1; }
+.chat-header-name { font-size: .95rem; font-weight: 700; color: #fff; line-height: 1.2; }
+.chat-header-status { font-size: .7rem; color: rgba(255,255,255,.65); display: flex; align-items: center; gap: .3rem; }
+.chat-header-status::before { content:''; width:7px; height:7px; border-radius:50%; background:#4ade80; display:inline-block; }
+.chat-close {
+  background: rgba(255,255,255,.15); border: none; color: #fff;
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 1rem;
+  transition: background .15s;
+}
+.chat-close:hover { background: rgba(255,255,255,.28); }
+
+/* Messages */
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 1rem 1rem .5rem;
+  display: flex; flex-direction: column; gap: .6rem;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: #e0d8ff; border-radius: 4px; }
+
+.msg { display: flex; gap: .5rem; align-items: flex-end; }
+.msg.bot { justify-content: flex-start; }
+.msg.user { justify-content: flex-end; }
+
+.msg-ava {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #7748FF, #5c2ee0);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; color: #fff;
+}
+
+.msg-bubble {
+  max-width: 78%; padding: .6rem .9rem;
+  border-radius: 16px; font-size: .84rem; line-height: 1.45;
+  word-break: break-word;
+}
+.msg.bot .msg-bubble {
+  background: #f3eeff; color: #1a1a2e;
+  border-bottom-left-radius: 4px;
+}
+.msg.user .msg-bubble {
+  background: linear-gradient(135deg, #7748FF, #5c2ee0);
+  color: #fff; border-bottom-right-radius: 4px;
+}
+
+.msg-time { font-size: .62rem; color: #ccc; margin-top: .15rem; text-align: right; }
+
+/* Typing indicator */
+.typing-dots { display: flex; gap: 4px; align-items: center; padding: .5rem .8rem; }
+.typing-dots span {
+  width: 7px; height: 7px; border-radius: 50%; background: #c4b0ff;
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2) { animation-delay: .2s; }
+.typing-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes typingBounce { 0%,60%,100% { transform:translateY(0); } 30% { transform:translateY(-6px); } }
+
+/* Suggestions */
+.chat-suggestions {
+  padding: .3rem 1rem .6rem; display: flex; flex-wrap: wrap; gap: .35rem; flex-shrink: 0;
+}
+.sug-btn {
+  background: #f3eeff; color: #7748FF; border: 1px solid #e0d8ff;
+  border-radius: 20px; padding: .28rem .75rem; font-size: .72rem; font-weight: 600;
+  cursor: pointer; font-family: 'Poppins', sans-serif;
+  transition: all .15s; white-space: nowrap;
+}
+.sug-btn:hover { background: #ede9fe; border-color: #c4b0ff; }
+
+/* Input */
+.chat-input-row {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .7rem 1rem; border-top: 1px solid #f0ecff; flex-shrink: 0;
+}
+.chat-input {
+  flex: 1; border: 1.5px solid #e0d8ff; border-radius: 12px;
+  padding: .5rem .85rem; font-size: .85rem; font-family: 'Poppins', sans-serif;
+  outline: none; transition: border-color .18s; background: #fafaff;
+}
+.chat-input:focus { border-color: #7748FF; background: #fff; }
+.chat-send {
+  width: 38px; height: 38px; border-radius: 50%; border: none; flex-shrink: 0;
+  background: linear-gradient(135deg, #7748FF, #5c2ee0); color: #fff;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; transition: transform .15s;
+}
+.chat-send:hover { transform: scale(1.08); }
+
+@media (max-width: 480px) {
+  .chat-window { width: calc(100vw - 2rem); right: 1rem; }
+  .chat-fab { right: 1rem; }
+}
+</style>
+
+<!-- Floating chat button -->
+<button class="chat-fab" onclick="toggleChat()" title="Чат поддержки" aria-label="Открыть чат">
+  <i class="bi bi-chat-dots-fill"></i>
+{#  <span class="chat-fab-badge"></span>#}
+</button>
+
+<!-- Chat window -->
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header">
+    <div class="chat-header-ava"><i class="bi bi-robot"></i></div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">EduBot</div>
+      <div class="chat-header-status">онлайн</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()" aria-label="Закрыть"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <div class="chat-messages" id="chatMessages"></div>
+
+  <div class="chat-suggestions" id="chatSuggestions">
+    <button class="sug-btn" onclick="sendSuggestion(this)">Как записаться на курс?</button>
+    <button class="sug-btn" onclick="sendSuggestion(this)">Сколько стоит?</button>
+    <button class="sug-btn" onclick="sendSuggestion(this)">Привязать ребёнка</button>
+    <button class="sug-btn" onclick="sendSuggestion(this)">Смена пароля</button>
+  </div>
+
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" type="text" placeholder="Напишите сообщение…" maxlength="300"
+           onkeydown="if(event.key==='Enter')sendMessage()">
+    <button class="chat-send" onclick="sendMessage()" aria-label="Отправить">
+      <i class="bi bi-send-fill"></i>
+    </button>
+  </div>
+</div>
+
+<script>
+(function() {
+
+/* ── Knowledge base ── */
+var KB = [
+  {
+    keys: ['привязать ребенка', 'привязать аккаунт ребенка', 'привязать ребёнка', 'добавить ребенка родителю', 'уже создан', 'аккаунт ребенка', 'ребёнок уже'],
+    answer: 'Если аккаунт ребёнка уже создан, привязать его вручную нельзя. Напишите нам на почту info@eduplatform.ru, укажите никнейм ребёнка и никнейм родителя — мы привяжем их в течение 24 часов.'
+  },
+  {
+    keys: ['записаться на курс', 'запись курс', 'как записаться', 'начать курс', 'поступить курс', 'хочу учиться'],
+    answer: 'Чтобы записаться на курс: откройте раздел «Курсы», выберите понравившийся курс и нажмите «Записаться». Для этого нужно быть авторизованным.'
+  },
+  {
+    keys: ['стоимость', 'сколько стоит', 'цена', 'оплата', 'платный', 'бесплатный', 'тариф'],
+    answer: 'На платформе есть бесплатные и платные курсы. Стоимость каждого курса указана на его странице. Узнать подробнее о тарифах можно в разделе «Услуги».'
+  },
+  {
+    keys: ['сменить пароль', 'изменить пароль', 'забыл пароль', 'восстановить пароль', 'смена пароля'],
+    answer: 'Изменить пароль можно в разделе редактирования профиля. Если забыли пароль — на странице входа нажмите «Забыли пароль?» и следуйте инструкции.'
+  },
+  {
+    keys: ['зарегистрироваться', 'регистрация', 'создать аккаунт', 'как войти', 'вход', 'как начать'],
+    answer: 'Нажмите кнопку «Войти» в шапке сайта, затем «Создать аккаунт». Выберите роль (Ученик, Родитель или Наставник) и заполните форму.'
+  },
+  {
+    keys: ['ментор', 'наставник', 'связаться с ментором', 'задать вопрос ментору', 'написать наставнику'],
+    answer: 'Связаться с наставником можно на странице вашего курса. Также можно написать напрямую через личный кабинет в разделе вебинаров.'
+  },
+  {
+    keys: ['сертификат', 'документ', 'подтверждение', 'получить сертификат'],
+    answer: 'Сертификат выдаётся автоматически после прохождения курса на 100%. Его можно скачать в личном кабинете в разделе «Мои курсы».'
+  },
+  {
+    keys: ['отменить запись', 'отписаться', 'отмена записи', 'уйти с курса', 'покинуть курс'],
+    answer: 'Чтобы отписаться от курса, зайдите на страницу курса и нажмите кнопку «Отменить запись». Или напишите нам на info@eduplatform.ru.'
+  },
+  {
+    keys: ['редактировать профиль', 'изменить профиль', 'фото профиля', 'аватар', 'изменить имя', 'личные данные'],
+    answer: 'Изменить данные профиля и загрузить аватар можно через кнопку «Редактировать» в личном кабинете или по ссылке «Мой профиль».'
+  },
+  {
+    keys: ['вебинар', 'онлайн занятие', 'онлайн урок', 'прямой эфир', 'запись вебинара', 'когда вебинар'],
+    answer: 'Вебинары — это живые онлайн-занятия с наставником. Расписание вебинаров отображается в календаре вашего личного кабинета.'
+  }
+];
+
+var chatOpen = false;
+var greeted = false;
+
+/* ── Normalise text ── */
+function norm(s) {
+  return s.toLowerCase()
+    .replace(/[ёе]/g, function(c){ return c==='ё'?'е':c; })
+    .replace(/[^а-яa-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+
+/* ── Levenshtein distance (simple) ── */
+function lev(a, b) {
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  var matrix = [];
+  for (var i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (var j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (var i = 1; i <= b.length; i++) {
+    for (var j = 1; j <= a.length; j++) {
+      matrix[i][j] = b[i-1] === a[j-1]
+        ? matrix[i-1][j-1]
+        : Math.min(matrix[i-1][j-1]+1, matrix[i][j-1]+1, matrix[i-1][j]+1);
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+/* Check if two words are similar (typo tolerance) */
+function wordMatch(w1, w2) {
+  if (w1 === w2) return true;
+  if (w1.length < 4 || w2.length < 4) return w1 === w2;
+  var maxDist = w1.length <= 5 ? 1 : 2;
+  return lev(w1, w2) <= maxDist;
+}
+
+/* ── Find best answer ── */
+function findAnswer(userText) {
+  var uNorm = norm(userText);
+  var uWords = uNorm.split(' ').filter(function(w){ return w.length > 2; });
+  if (!uWords.length) return null;
+
+  var best = null, bestScore = 0;
+
+  KB.forEach(function(item) {
+    item.keys.forEach(function(phrase) {
+      var pWords = norm(phrase).split(' ').filter(function(w){ return w.length > 2; });
+      var matched = 0;
+      uWords.forEach(function(uw) {
+        pWords.forEach(function(pw) {
+          if (wordMatch(uw, pw)) matched++;
+        });
+      });
+      if (matched >= 1 && matched > bestScore) {
+        bestScore = matched;
+        best = item.answer;
+      }
+    });
+  });
+
+  return best;
+}
+
+/* ── Render helpers ── */
+function nowTime() {
+  var d = new Date();
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+function appendMsg(role, text) {
+  var wrap = document.getElementById('chatMessages');
+  var msgEl = document.createElement('div');
+  msgEl.className = 'msg ' + role;
+
+  if (role === 'bot') {
+    msgEl.innerHTML =
+      '<div class="msg-ava"><i class="bi bi-robot"></i></div>' +
+      '<div>' +
+        '<div class="msg-bubble">' + escHtml(text) + '</div>' +
+        '<div class="msg-time">' + nowTime() + '</div>' +
+      '</div>';
+  } else {
+    msgEl.innerHTML =
+      '<div>' +
+        '<div class="msg-bubble">' + escHtml(text) + '</div>' +
+        '<div class="msg-time" style="text-align:right">' + nowTime() + '</div>' +
+      '</div>';
+  }
+  wrap.appendChild(msgEl);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showTyping() {
+  var wrap = document.getElementById('chatMessages');
+  var el = document.createElement('div');
+  el.className = 'msg bot'; el.id = 'typingIndicator';
+  el.innerHTML =
+    '<div class="msg-ava"><i class="bi bi-robot"></i></div>' +
+    '<div class="msg-bubble" style="padding:.35rem .7rem">' +
+      '<div class="typing-dots"><span></span><span></span><span></span></div>' +
+    '</div>';
+  wrap.appendChild(el);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function hideTyping() {
+  var el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+/* ── Open / close ── */
+window.toggleChat = function() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatWindow').classList.toggle('open', chatOpen);
+  if (chatOpen && !greeted) {
+    greeted = true;
+    setTimeout(function() {
+      appendMsg('bot', 'Привет! 👋 Я EduBot — виртуальный помощник EduPlatform. Задайте вопрос или выберите тему ниже.');
+    }, 300);
+  }
+  if (chatOpen) {
+    setTimeout(function(){
+      var inp = document.getElementById('chatInput');
+      if(inp) inp.focus();
+    }, 250);
+  }
+};
+
+/* ── Send message ── */
+window.sendMessage = function() {
+  var inp = document.getElementById('chatInput');
+  var text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+
+  // Hide suggestions after first message
+  document.getElementById('chatSuggestions').style.display = 'none';
+
+  appendMsg('user', text);
+  showTyping();
+
+  setTimeout(function() {
+    hideTyping();
+    var answer = findAnswer(text);
+    if (!answer) {
+      answer = 'К сожалению, я не нашёл ответ на ваш вопрос. Напишите нам напрямую на почту info@eduplatform.ru — мы обязательно поможем!';
+    }
+    appendMsg('bot', answer);
+  }, 700 + Math.random() * 400);
+};
+
+/* ── Suggestion chips ── */
+window.sendSuggestion = function(btn) {
+  var inp = document.getElementById('chatInput');
+  inp.value = btn.textContent;
+  sendMessage();
+};
+
+})();
+</script>
 </body>
 </html>

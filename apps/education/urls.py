@@ -6,7 +6,7 @@ from .views import (
     StudentCourseListView, StudentScheduleListView,
     ParentChildScheduleView, AvailableCourseListView, MyCourseListView, UnenrollCourseView, EnrollCourseView,
     PlacementTestView, PlacementTestResultView, CourseDetailView, CourseReviewView, LessonPlayerView, LessonResultView,
-    LessonCardSubmitView,
+    LessonCardSubmitView, LessonRetakeView, MentorReviewSubmitView,
     MentorSubscribeCourseView, MentorUnsubscribeCourseView, ScheduleDetailView,
     LessonEditorView, LessonCreateEditorView,
     StudentSearchAPIView,
@@ -50,6 +50,8 @@ urlpatterns = [
     path("lessons/<int:lesson_id>/play/",        LessonPlayerView.as_view(),    name="lesson_player"),
     path("lessons/<int:lesson_id>/submit/",      LessonCardSubmitView.as_view(),name="lesson_card_submit"),
     path("lessons/<int:lesson_id>/result/",      LessonResultView.as_view(),    name="lesson_result"),
+    path("lessons/<int:lesson_id>/retake/",      LessonRetakeView.as_view(),    name="lesson_retake"),
+    path("lessons/<int:lesson_id>/review/<int:student_id>/", MentorReviewSubmitView.as_view(), name="mentor_review_submit"),
 
     # Lesson editor
     path("courses/<int:course_id>/lessons/create/editor/", LessonCreateEditorView.as_view(), name="lesson_create_editor"),

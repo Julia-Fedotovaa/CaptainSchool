@@ -1,0 +1,17 @@
+{% extends "_error_base.html" %}
+
+{% block page_title %}Некорректный запрос{% endblock %}
+
+{% block accent_color %}#f59e0b{% endblock %}
+{% block accent_color2 %}#f59e0b{% endblock %}
+{% block accent_color3 %}#fbbf24{% endblock %}
+{% block icon_bg %}linear-gradient(135deg, #f59e0b, #fbbf24){% endblock %}
+{% block icon_shadow %}0 8px 24px rgba(245, 158, 11, .35){% endblock %}
+
+{% block error_code %}400{% endblock %}
+{% block error_icon %}bi-exclamation-octagon-fill{% endblock %}
+{% block error_title %}Некорректный запрос{% endblock %}
+{% block error_desc %}
+  Сервер не&nbsp;смог обработать запрос — данные переданы некорректно<br>
+  или запрос имеет неверный формат.
+{% endblock %}

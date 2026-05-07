@@ -32,7 +32,7 @@ class Course(models.Model):
 
     # Optional image to represent the course on the landing page
     image = models.ImageField(
-        upload_to="static/courses/images/",
+        upload_to="courses/images/",
         null=True,
         blank=True,
         verbose_name="Изображение курса",
@@ -203,7 +203,7 @@ class PlacementQuestion(models.Model):
                                      verbose_name="Тип вопроса")
     order = models.PositiveIntegerField(default=0, verbose_name="Порядок")
     text = models.TextField(verbose_name="Текст вопроса")
-    image = models.ImageField(upload_to="placement_test/images/", null=True, blank=True, verbose_name="Изображение")
+    image = models.ImageField(upload_to="placement/", null=True, blank=True, verbose_name="Изображение")
 
     class Meta:
         verbose_name = "Вопрос теста"
@@ -383,7 +383,7 @@ class LessonCard(models.Model):
     order = models.PositiveIntegerField(default=0, verbose_name="Порядок")
     title = models.CharField(max_length=200, blank=True, verbose_name="Заголовок")
     content = models.TextField(blank=True, verbose_name="Текст / вопрос")
-    image = models.ImageField(upload_to="lessons/cards/", null=True, blank=True, verbose_name="Изображение")
+    image = models.ImageField(upload_to="lessons/", null=True, blank=True, verbose_name="Изображение")
 
     class Meta:
         verbose_name = "Карточка урока"
@@ -411,13 +411,15 @@ class CardChoice(models.Model):
 
 
 class LessonProgress(models.Model):
-    STATUS_NOT_STARTED = "not_started"
-    STATUS_IN_PROGRESS = "in_progress"
-    STATUS_COMPLETED = "completed"
+    STATUS_NOT_STARTED   = "not_started"
+    STATUS_IN_PROGRESS   = "in_progress"
+    STATUS_PENDING_REVIEW = "pending_review"   # сдан, ждёт проверки ментором
+    STATUS_COMPLETED     = "completed"
     STATUSES = [
-        (STATUS_NOT_STARTED, "Не начат"),
-        (STATUS_IN_PROGRESS, "В процессе"),
-        (STATUS_COMPLETED, "Завершён"),
+        (STATUS_NOT_STARTED,   "Не начат"),
+        (STATUS_IN_PROGRESS,   "В процессе"),
+        (STATUS_PENDING_REVIEW, "На проверке"),
+        (STATUS_COMPLETED,     "Завершён"),
     ]
 
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="lesson_progress",
@@ -459,3 +461,41 @@ class LessonProgress(models.Model):
         if not total:
             return 0
         return round(min(self.current_card_index, total) / total * 100)
+
+
+class OpenAnswerSubmission(models.Model):
+    """Ответ ученика на развёрнутый вопрос, ожидающий ручной проверки ментора."""
+    STATUS_PENDING  = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUSES = [
+        (STATUS_PENDING,  "Ожидает проверки"),
+        (STATUS_APPROVED, "Одобрен"),
+        (STATUS_REJECTED, "Отклонён"),
+    ]
+
+    student      = models.ForeignKey(Student, on_delete=models.CASCADE,
+                                     related_name="open_submissions", verbose_name="Ученик")
+    lesson       = models.ForeignKey(Lesson, on_delete=models.CASCADE,
+                                     related_name="open_submissions", verbose_name="Урок")
+    card         = models.ForeignKey(LessonCard, on_delete=models.CASCADE,
+                                     related_name="submissions", verbose_name="Карточка")
+    student_text = models.TextField(verbose_name="Ответ ученика")
+    status       = models.CharField(max_length=20, choices=STATUSES,
+                                    default=STATUS_PENDING, verbose_name="Статус")
+    mentor_comment = models.TextField(blank=True,
+                                      verbose_name="Правильный ответ / комментарий ментора")
+    reviewed_by  = models.ForeignKey("mentors.Mentor", null=True, blank=True,
+                                     on_delete=models.SET_NULL,
+                                     related_name="reviewed_submissions",
+                                     verbose_name="Проверил")
+    reviewed_at  = models.DateTimeField(null=True, blank=True, verbose_name="Дата проверки")
+    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата отправки")
+
+    class Meta:
+        verbose_name = "Ответ на развёрнутый вопрос"
+        verbose_name_plural = "Ответы на развёрнутые вопросы"
+        unique_together = ("student", "card")
+
+    def __str__(self):
+        return f"{self.student} / {self.card} — {self.get_status_display()}"

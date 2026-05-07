@@ -26,19 +26,40 @@ class ParentChildrenListView(RoleRequiredMixin, ListView):
         return parent.students.all()
 
 
-class ParentChildCoursesView(RoleRequiredMixin, ListView):
+class ParentChildCoursesView(RoleRequiredMixin, View):
     template_name = "students/parent_child_courses.html"
-    context_object_name = "enrollments"
     allowed_roles = (User.Role.PARENT,)
 
-    def get_queryset(self):
-        parent = get_object_or_404(Parent, user=self.request.user)
-        student = get_object_or_404(
-            Student,
-            user_id=self.kwargs["student_id"],
-            parents=parent
+    def get(self, request, student_id):
+        from apps.students.models import StudentStats
+        from apps.progress.models import Progress
+
+        parent = get_object_or_404(Parent, user=request.user)
+        student = get_object_or_404(Student, user_id=student_id, parents=parent)
+
+        enrollments = list(
+            Enrollment.objects.filter(student=student)
+            .select_related("course", "course__category")
         )
-        return Enrollment.objects.filter(student=student)
+        progress_map = {
+            p.course_id: p.completion_percent
+            for p in Progress.objects.filter(student=student)
+        }
+        for e in enrollments:
+            e.progress_percent = progress_map.get(e.course_id, 0)
+            e.lessons_count = e.course.lessons.count()
+
+        all_percents = list(progress_map.values())
+        avg = round(sum(all_percents) / len(all_percents)) if all_percents else 0
+
+        stats, _ = StudentStats.objects.get_or_create(student=student)
+
+        return render(request, self.template_name, {
+            "student": student,
+            "enrollments": enrollments,
+            "avg": avg,
+            "stats": stats,
+        })
 
 
 class ParentChildScheduleView(RoleRequiredMixin, ListView):

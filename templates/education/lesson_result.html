@@ -72,12 +72,60 @@ body { background: #1a1a2e; }
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: .95rem; color: #fff; flex-shrink: 0;
 }
+.next-info { flex: 1; min-width: 0; text-align: left; }
 .next-info .label { font-size: .72rem; color: rgba(255,255,255,.45); font-weight: 600; text-transform: uppercase; }
 .next-info .name  { font-size: .97rem; font-weight: 700; color: #fff; }
 
 footer { background: rgba(255,255,255,.04) !important; color: rgba(255,255,255,.3) !important; border-top: 1px solid rgba(255,255,255,.07) !important; }
 footer h5 { color: rgba(255,255,255,.6) !important; }
 footer ul li a { color: rgba(255,255,255,.35) !important; }
+
+/* ── PENDING REVIEW ── */
+.pending-circle {
+  width: 130px; height: 130px; border-radius: 50%;
+  background: #EAB308; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 40px rgba(234,179,8,.4);
+  position: relative;
+}
+.pending-circle::after {
+  content: ''; position: absolute; inset: -6px;
+  border-radius: 50%; border: 3px solid #EAB308; opacity: .3;
+}
+.pending-circle i { font-size: 3rem; color: #fff; }
+.pending-sub { font-size: .72rem; color: rgba(255,255,255,.75); margin-top: .25rem; font-weight: 600; }
+
+/* open answers block */
+.open-results {
+  width: 100%; background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px; padding: 1.4rem 1.6rem;
+  margin-bottom: 2rem; text-align: left;
+}
+.open-results-title {
+  font-size: .72rem; font-weight: 700; color: rgba(255,255,255,.45);
+  text-transform: uppercase; letter-spacing: .08em; margin-bottom: 1rem;
+  display: flex; align-items: center; gap: .45rem;
+}
+.open-result-item {
+  border-radius: 12px; padding: .9rem 1rem; margin-bottom: .7rem;
+  border: 1px solid rgba(255,255,255,.1);
+}
+.open-result-item:last-child { margin-bottom: 0; }
+.open-result-item.pending  { background: rgba(234,179,8,.12);  border-color: rgba(234,179,8,.3); }
+.open-result-item.approved { background: rgba(34,197,94,.12);  border-color: rgba(34,197,94,.3); }
+.open-result-item.rejected { background: rgba(239,68,68,.12);  border-color: rgba(239,68,68,.3); }
+.ori-question { font-size: .8rem; color: rgba(255,255,255,.5); margin-bottom: .35rem; }
+.ori-answer   { font-size: .88rem; color: #fff; margin-bottom: .35rem; font-style: italic; }
+.ori-status {
+  font-size: .75rem; font-weight: 700;
+  display: flex; align-items: center; gap: .35rem;
+}
+.ori-status.pending  { color: #EAB308; }
+.ori-status.approved { color: #22C55E; }
+.ori-status.rejected { color: #EF4444; }
+.ori-comment { font-size: .8rem; color: rgba(255,255,255,.6); margin-top: .3rem; padding-top: .3rem; border-top: 1px solid rgba(255,255,255,.1); }
 
 /* ── НОВЫЕ ДОСТИЖЕНИЯ ── */
 .new-badges-wrap {
@@ -114,7 +162,58 @@ footer ul li a { color: rgba(255,255,255,.35) !important; }
 
 <div class="result-wrap">
 
-  {# ── GRADE ── #}
+{% if lp.status == 'pending_review' %}
+  {# ══════════════ ОЖИДАНИЕ ПРОВЕРКИ ══════════════ #}
+  <div class="pending-circle">
+    <i class="bi bi-hourglass-split"></i>
+    <span class="pending-sub">На проверке</span>
+  </div>
+
+  <h1 class="result-title">Ответы отправлены!</h1>
+  <p class="result-sub">{{ lesson.title }}</p>
+
+  {# статистика только по тестовым вопросам #}
+  {% if lp.total_test_cards %}
+  <div class="result-stats">
+    <div class="r-stat">
+      <div class="val">{{ lp.correct_answers }}/{{ lp.total_test_cards }}</div>
+      <div class="lbl">Тестовых верно</div>
+    </div>
+    <div class="r-stat">
+      <div class="val">{{ lp.score_percent }}%</div>
+      <div class="lbl">Тестовый балл</div>
+    </div>
+    <div class="r-stat">
+      <div class="val">{{ lesson.total_cards }}</div>
+      <div class="lbl">Карточек</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# блок развёрнутых ответов #}
+  {% if open_submissions %}
+  <div class="open-results">
+    <div class="open-results-title">
+      <i class="bi bi-hourglass-split"></i> Развёрнутые ответы — ожидают проверки ментора
+    </div>
+    {% for sub in open_submissions %}
+    <div class="open-result-item pending">
+      <div class="ori-question">{{ sub.card.title|default:sub.card.content|truncatechars:80 }}</div>
+      <div class="ori-answer">«{{ sub.student_text|truncatechars:120 }}»</div>
+      <div class="ori-status pending">
+        <i class="bi bi-hourglass-split"></i> Ожидает проверки
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="result-actions">
+    <a href="{% url 'course_detail' course.id %}" class="btn-primary">К курсу</a>
+  </div>
+
+{% else %}
+  {# ══════════════ УРОК ЗАВЕРШЁН ══════════════ #}
   {% with g=lp.grade %}
   <div class="grade-circle" style="background: {{ g.1 }}; color: {{ g.1 }}">
     <span style="color:#fff">{{ g.0 }}</span>
@@ -125,7 +224,6 @@ footer ul li a { color: rgba(255,255,255,.35) !important; }
   <h1 class="result-title">Урок завершён!</h1>
   <p class="result-sub">{{ lesson.title }}</p>
 
-  {# ── STATS ── #}
   <div class="result-stats">
     <div class="r-stat">
       <div class="val">{{ lp.correct_answers }}/{{ lp.total_test_cards }}</div>
@@ -141,13 +239,39 @@ footer ul li a { color: rgba(255,255,255,.35) !important; }
     </div>
   </div>
 
-  {# ── НОВЫЕ ДОСТИЖЕНИЯ ── #}
+  {# результаты развёрнутых ответов (если были) #}
+  {% if open_submissions %}
+  <div class="open-results">
+    <div class="open-results-title">
+      <i class="bi bi-pencil-square"></i> Развёрнутые ответы — результат проверки
+    </div>
+    {% for sub in open_submissions %}
+    <div class="open-result-item {{ sub.status }}">
+      <div class="ori-question">{{ sub.card.title|default:sub.card.content|truncatechars:80 }}</div>
+      <div class="ori-answer">«{{ sub.student_text|truncatechars:120 }}»</div>
+      <div class="ori-status {{ sub.status }}">
+        {% if sub.status == 'approved' %}
+          <i class="bi bi-check-circle-fill"></i> Верно
+        {% elif sub.status == 'rejected' %}
+          <i class="bi bi-x-circle-fill"></i> Неверно
+        {% else %}
+          <i class="bi bi-hourglass-split"></i> Ожидает проверки
+        {% endif %}
+      </div>
+      {% if sub.mentor_comment %}
+      <div class="ori-comment">Правильный ответ: {{ sub.mentor_comment }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# достижения #}
   {% if recent_badges %}
   <div class="new-badges-wrap">
     <div class="new-badges-title">🏅 Получено достижений</div>
     <div class="new-badges-row">
-      {% for sb in recent_badges %}
-      {% with b=sb.badge %}
+      {% for sb in recent_badges %}{% with b=sb.badge %}
       <div class="new-badge-card">
         <div class="nb-medal">
           <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -163,13 +287,11 @@ footer ul li a { color: rgba(255,255,255,.35) !important; }
         <div class="nb-name">{{ b.display_name }}</div>
         <div class="nb-desc">{{ b.display_desc|truncatechars:45 }}</div>
       </div>
-      {% endwith %}
-      {% endfor %}
+      {% endwith %}{% endfor %}
     </div>
   </div>
   {% endif %}
 
-  {# ── СЛЕДУЮЩИЙ УРОК ── #}
   {% if next_lesson %}
   <a href="{% url 'lesson_player' next_lesson.id %}" class="next-lesson-card">
     <div class="next-num" style="background: {{ next_lesson.color_hex }}">{{ next_lesson.order }}</div>
@@ -181,11 +303,16 @@ footer ul li a { color: rgba(255,255,255,.35) !important; }
   </a>
   {% endif %}
 
-  {# ── ACTIONS ── #}
   <div class="result-actions">
     <a href="{% url 'course_detail' course.id %}" class="btn-primary">К курсу</a>
-    <a href="{% url 'lesson_player' lesson.id %}" class="btn-ghost">Пройти снова</a>
+    <form method="post" action="{% url 'lesson_retake' lesson.id %}" style="margin:0">
+      {% csrf_token %}
+      <button type="submit" class="btn-ghost">
+        <i class="bi bi-arrow-repeat"></i> Пройти снова
+      </button>
+    </form>
   </div>
 
+{% endif %}
 </div>
 {% endblock %}

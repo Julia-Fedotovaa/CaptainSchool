@@ -1,0 +1,26 @@
+{% extends "_error_base.html" %}
+
+{% block page_title %}Ошибка сервера{% endblock %}
+
+{% block accent_color %}#f97316{% endblock %}
+{% block accent_color2 %}#f97316{% endblock %}
+{% block accent_color3 %}#fb923c{% endblock %}
+{% block icon_bg %}linear-gradient(135deg, #f97316, #fb923c){% endblock %}
+{% block icon_shadow %}0 8px 24px rgba(249, 115, 22, .35){% endblock %}
+
+{% block error_code %}500{% endblock %}
+{% block error_icon %}bi-tools{% endblock %}
+{% block error_title %}Ошибка сервера{% endblock %}
+{% block error_desc %}
+  Что-то пошло не&nbsp;так на&nbsp;нашей стороне.<br>
+  Мы уже знаем об&nbsp;этом и&nbsp;работаем над исправлением.
+{% endblock %}
+
+{% block buttons %}
+<button class="btn-back" onclick="location.reload()">
+  <i class="bi bi-arrow-clockwise"></i> Обновить
+</button>
+<a href="/" class="btn-home">
+  <i class="bi bi-house-fill"></i> На главную
+</a>
+{% endblock %}

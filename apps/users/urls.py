@@ -8,7 +8,7 @@ from .views import (
     ParentDashboardView, StudentDashboardView,
     ProfileEditView, AboutView, ServicesView,
     HelpView, FaqView, PrivacyView, TermsView,
-    home, all_courses,
+    home, all_courses, contact_submit,
 )
 
 urlpatterns = [
@@ -31,6 +31,8 @@ urlpatterns = [
     path("faq/",      FaqView.as_view(),      name="faq"),
     path("privacy/",  PrivacyView.as_view(),  name="privacy"),
     path("terms/",    TermsView.as_view(),    name="terms"),
+
+    path("contact/", contact_submit, name="contact_submit"),
 
     path("", home, name="home"),
 ]

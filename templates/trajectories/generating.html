@@ -6,90 +6,270 @@
 body { background: #7748FF; }
 .site-header { position: relative !important; background: transparent; padding: 1.8rem 0; }
 
+/* ── BLOBS ── */
+.bg-blob-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bg-blob { position: absolute; background: #fff; border-radius: 50%; }
+.bg-blob-1 { width: 500px; height: 500px; top: 10%; left: -160px; opacity: .11; }
+.bg-blob-2 { width: 380px; height: 380px; bottom: 5%; right: -120px; opacity: .09; }
+
+/* ── WRAP ── */
 .gen-wrap {
   position: relative; z-index: 1;
-  max-width: 600px; margin: 0 auto; padding: 6rem 2rem 5rem;
-  text-align: center; color: #fff;
+  max-width: 560px; margin: 0 auto;
+  padding: 4rem 2rem 5rem;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
 }
 
-.gen-spinner {
-  width: 80px; height: 80px; margin: 0 auto 2rem;
-  border: 5px solid rgba(255,255,255,.2);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+/* ═══════════ LOADING STATE ═══════════ */
+#state-loading { width: 100%; }
 
-.gen-title { font-size: 1.8rem; font-weight: 800; margin-bottom: .6rem; }
-.gen-subtitle { font-size: 1rem; opacity: .75; margin-bottom: 2rem; line-height: 1.6; }
-
-.gen-done {
-  display: none;
-  animation: fadeUp .5s ease forwards;
+/* Stacked course cards animation */
+.anim-cards {
+  width: 160px; height: 120px; position: relative; margin: 0 auto 2.5rem;
 }
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+.anim-card {
+  position: absolute; width: 130px; height: 86px; border-radius: 16px;
+  left: 50%; transform: translateX(-50%);
+  box-shadow: 0 8px 28px rgba(0,0,0,.2);
 }
-
-.gen-check {
-  width: 70px; height: 70px; margin: 0 auto 1.5rem;
-  background: rgba(255,255,255,.18); border-radius: 50%;
+.anim-card-1 {
+  background: rgba(255,255,255,.18); bottom: 0;
+  animation: cardFloat1 2.4s ease-in-out infinite;
+}
+.anim-card-2 {
+  background: rgba(255,255,255,.28); bottom: 14px;
+  animation: cardFloat2 2.4s ease-in-out infinite;
+}
+.anim-card-3 {
+  background: #fff; bottom: 28px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 2rem;
+  animation: cardFloat3 2.4s ease-in-out infinite;
+}
+.anim-card-3 i { font-size: 1.8rem; color: #7748FF; }
+
+@keyframes cardFloat1 {
+  0%,100% { transform: translateX(-50%) translateY(0);    opacity:.18; }
+  50%      { transform: translateX(-50%) translateY(-5px); opacity:.22; }
+}
+@keyframes cardFloat2 {
+  0%,100% { transform: translateX(-50%) translateY(0);    opacity:.28; }
+  50%      { transform: translateX(-50%) translateY(-7px); opacity:.34; }
+}
+@keyframes cardFloat3 {
+  0%,100% { transform: translateX(-50%) translateY(0);    box-shadow: 0 8px 28px rgba(0,0,0,.2); }
+  50%      { transform: translateX(-50%) translateY(-9px); box-shadow: 0 16px 40px rgba(0,0,0,.25); }
 }
 
-.gen-stats { display: flex; gap: 2rem; justify-content: center; margin-bottom: 2rem; }
-.gen-stat-num { font-size: 2rem; font-weight: 800; }
-.gen-stat-lbl { font-size: .82rem; opacity: .7; }
-
-.gen-btn {
-  display: inline-block; background: #fff; color: #7748FF;
-  padding: .75rem 2.5rem; border-radius: 50px; font-size: 1rem; font-weight: 700;
-  text-decoration: none; box-shadow: 0 4px 20px rgba(0,0,0,.12);
-  transition: transform .2s, background .2s;
+/* Steps */
+.gen-steps {
+  display: flex; flex-direction: column; gap: .7rem;
+  width: 100%; margin-bottom: 2.2rem;
 }
-.gen-btn:hover { transform: translateY(-2px); color: #5c2ee0; }
+.gen-step {
+  display: flex; align-items: center; gap: .9rem;
+  background: rgba(255,255,255,.1); border-radius: 14px;
+  padding: .85rem 1.2rem;
+  opacity: .45; transition: opacity .4s, background .4s;
+}
+.gen-step.active {
+  opacity: 1; background: rgba(255,255,255,.18);
+}
+.gen-step.done {
+  opacity: .7; background: rgba(255,255,255,.1);
+}
+.step-icon {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  background: rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; color: #fff;
+}
+.gen-step.active .step-icon { background: #fff; color: #7748FF; }
+.gen-step.done  .step-icon { background: rgba(255,255,255,.25); color: #fff; }
+.step-text { font-size: .88rem; font-weight: 600; color: #fff; text-align: left; flex: 1; }
+.step-check { font-size: .85rem; color: rgba(255,255,255,.5); }
+.gen-step.done .step-check { color: #a5f3a0; }
+
+.gen-loading-title {
+  font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: .4rem;
+}
+.gen-loading-sub {
+  font-size: .9rem; color: rgba(255,255,255,.65); line-height: 1.55;
+}
+
+/* ═══════════ DONE STATE ═══════════ */
+#state-done {
+  display: none; width: 100%;
+  animation: fadeSlideUp .55s cubic-bezier(.22,1,.36,1) forwards;
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* White card */
+.done-card {
+  background: #fff; border-radius: 24px;
+  padding: 2.5rem 2.2rem 2rem;
+  box-shadow: 0 16px 60px rgba(40,0,120,.2);
+  margin-bottom: 1.2rem;
+}
+
+.done-badge {
+  width: 72px; height: 72px; border-radius: 20px; margin: 0 auto 1.2rem;
+  background: linear-gradient(135deg, #7748FF, #b08aff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; color: #fff;
+  box-shadow: 0 8px 28px rgba(119,72,255,.4);
+}
+
+.done-title {
+  font-size: 1.7rem; font-weight: 800; color: #1a1a2e; margin-bottom: .4rem;
+}
+.done-sub {
+  font-size: .88rem; color: #888; line-height: 1.55; margin-bottom: 1.8rem;
+}
+
+.done-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; margin-bottom: .4rem;
+}
+.done-stat {
+  background: #faf8ff; border: 1.5px solid #f0ecff; border-radius: 16px;
+  padding: 1.1rem; text-align: center;
+}
+.done-stat-num {
+  font-size: 2rem; font-weight: 800; color: #7748FF; line-height: 1;
+  margin-bottom: .2rem;
+}
+.done-stat-lbl { font-size: .72rem; color: #aaa; font-weight: 600; }
+
+/* Actions */
+.done-actions { display: flex; flex-direction: column; gap: .7rem; margin-top: 1.2rem; }
+.btn-main {
+  background: #7748FF; color: #fff; border: none;
+  padding: .85rem; border-radius: 14px; font-size: .97rem; font-weight: 700;
+  font-family: 'Poppins', sans-serif; cursor: pointer; text-decoration: none;
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  transition: background .2s, transform .15s;
+}
+.btn-main:hover { background: #5c2ee0; transform: translateY(-2px); color: #fff; }
+.btn-secondary {
+  background: #f3eeff; color: #7748FF; border: none;
+  padding: .82rem; border-radius: 14px; font-size: .97rem; font-weight: 600;
+  font-family: 'Poppins', sans-serif; cursor: pointer; text-decoration: none;
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  transition: background .2s;
+}
+.btn-secondary:hover { background: #ede9fe; color: #5c2ee0; }
+
+footer { background: linear-gradient(180deg, #5a2ee0, #7748FF) !important; color: rgba(255,255,255,.75) !important; }
+footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.68) !important; }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="bg-blob-wrap">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+</div>
+
 <div class="gen-wrap">
-  <div id="loading">
-    <div class="gen-spinner"></div>
-    <div class="gen-title">Генерируем траекторию...</div>
-    <div class="gen-subtitle">
-      Подбираем курсы по направлению «{{ category.name }}»<br>
-      и выстраиваем оптимальный порядок прохождения
+
+  {# ════ LOADING ════ #}
+  <div id="state-loading">
+    <div class="anim-cards">
+      <div class="anim-card anim-card-1"></div>
+      <div class="anim-card anim-card-2"></div>
+      <div class="anim-card anim-card-3">
+        <i class="bi bi-collection-play-fill"></i>
+      </div>
+    </div>
+
+    <div class="gen-loading-title">Строим траекторию…</div>
+    <div class="gen-loading-sub" style="margin-bottom:1.8rem;">
+      Направление — <strong style="color:#fff;">{{ category.name }}</strong>
+    </div>
+
+    <div class="gen-steps">
+      <div class="gen-step active" id="step-1">
+        <div class="step-icon"><i class="bi bi-clipboard2-data-fill"></i></div>
+        <div class="step-text">Анализируем результаты теста</div>
+        <i class="bi bi-check2 step-check"></i>
+      </div>
+      <div class="gen-step" id="step-2">
+        <div class="step-icon"><i class="bi bi-search"></i></div>
+        <div class="step-text">Подбираем подходящие курсы</div>
+        <i class="bi bi-check2 step-check"></i>
+      </div>
+      <div class="gen-step" id="step-3">
+        <div class="step-icon"><i class="bi bi-signpost-split-fill"></i></div>
+        <div class="step-text">Выстраиваем порядок обучения</div>
+        <i class="bi bi-check2 step-check"></i>
+      </div>
     </div>
   </div>
 
-  <div class="gen-done" id="done">
-    <div class="gen-check"><i class="bi bi-check-lg"></i></div>
-    <div class="gen-title">Траектория готова!</div>
-    <div class="gen-subtitle">
-      Мы подобрали для тебя курсы по направлению «{{ category.name }}»
-      и записали тебя на них.
-    </div>
-    <div class="gen-stats">
-      <div>
-        <div class="gen-stat-num">{{ courses_count }}</div>
-        <div class="gen-stat-lbl">курсов</div>
+  {# ════ DONE ════ #}
+  <div id="state-done">
+    <div class="done-card">
+      <div class="done-badge"><i class="bi bi-check2-circle"></i></div>
+      <div class="done-title">Траектория готова!</div>
+      <div class="done-sub">
+        Мы подобрали курсы по направлению <strong>«{{ category.name }}»</strong>
+        и записали тебя на них. Можешь начинать обучение прямо сейчас!
       </div>
-      <div>
-        <div class="gen-stat-num">{{ category.name|truncatechars:12 }}</div>
-        <div class="gen-stat-lbl">направление</div>
+
+      <div class="done-stats">
+        <div class="done-stat">
+          <div class="done-stat-num">{{ courses_count }}</div>
+          <div class="done-stat-lbl">Курсов добавлено</div>
+        </div>
+        <div class="done-stat">
+          <div class="done-stat-num" style="font-size:1.1rem; padding-top:.4rem;">
+            {{ category.name|truncatechars:10 }}
+          </div>
+          <div class="done-stat-lbl">Направление</div>
+        </div>
+      </div>
+
+      <div class="done-actions">
+        <a href="{% url 'student_dashboard' %}" class="btn-main">
+          <i class="bi bi-house-fill"></i> Перейти в личный кабинет
+        </a>
+        <a href="{% url 'available_courses' %}" class="btn-secondary">
+          <i class="bi bi-collection-play"></i> Смотреть все курсы
+        </a>
       </div>
     </div>
-    <a href="{% url 'student_dashboard' %}" class="gen-btn">Перейти в кабинет</a>
   </div>
+
 </div>
 
 <script>
+(function() {
+  var steps = [
+    { el: document.getElementById('step-1'), delay: 0,    dur: 800  },
+    { el: document.getElementById('step-2'), delay: 800,  dur: 900  },
+    { el: document.getElementById('step-3'), delay: 1700, dur: 700  },
+  ];
+  var total = 2800;
+
+  steps.forEach(function(s) {
+    // Activate
+    setTimeout(function() {
+      s.el.classList.add('active');
+    }, s.delay);
+    // Mark done
+    setTimeout(function() {
+      s.el.classList.remove('active');
+      s.el.classList.add('done');
+    }, s.delay + s.dur);
+  });
+
+  // Switch to done state
   setTimeout(function() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('done').style.display = 'block';
-  }, 2500);
+    document.getElementById('state-loading').style.display = 'none';
+    document.getElementById('state-done').style.display = 'block';
+  }, total);
+})();
 </script>
 {% endblock %}

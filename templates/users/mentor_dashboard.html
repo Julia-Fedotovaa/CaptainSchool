@@ -1,5 +1,6 @@
 {% extends "base_template.html" %}
 {% load static %}
+{% load edu_tags %}
 
 {% block title %}Кабинет ментора{% endblock %}
 
@@ -300,6 +301,14 @@ body { background: #7748FF; }
   text-align: center;
 }
 .wdet-close:hover { border-color: #7748FF; color: #7748FF; }
+.wdet-delete-btn {
+  display: block; width: 100%; margin-top: .6rem; padding: .6rem;
+  background: none; border: 2px solid #fee2e2; border-radius: 12px;
+  color: #ef4444; font-size: .88rem; font-weight: 700;
+  font-family: 'Poppins', sans-serif; cursor: pointer; transition: all .15s;
+  text-align: center;
+}
+.wdet-delete-btn:hover { background: #fff0f0; border-color: #ef4444; }
 
 /* ===== DELETE MODAL ===== */
 .del-overlay {
@@ -336,6 +345,47 @@ body { background: #7748FF; }
   font-family: 'Poppins', sans-serif; cursor: pointer; transition: all .15s;
 }
 .del-btn-confirm:hover { background: #dc2626; }
+
+/* ===== PENDING REVIEWS ===== */
+.reviews-card {
+  background: #fff; border-radius: 22px;
+  box-shadow: 0 8px 40px rgba(40,0,120,.10);
+  overflow: hidden; margin-bottom: 1.6rem;
+}
+.reviews-card-header {
+  padding: 1.1rem 1.6rem .9rem;
+  display: flex; align-items: center; gap: .6rem;
+  border-bottom: 1px solid #f0ecff;
+}
+.reviews-card-header > i { color: #EAB308; font-size: 1.1rem; }
+.reviews-card-header h3 { font-size: .9rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+.reviews-count {
+  margin-left: auto; background: #fef9c3; color: #854d0e;
+  font-size: .7rem; font-weight: 700; padding: .18rem .6rem;
+  border-radius: 7px; white-space: nowrap;
+}
+.review-row {
+  display: flex; align-items: center; gap: .8rem;
+  padding: .85rem 1.6rem; border-bottom: 1px solid #f0ecff;
+  text-decoration: none; transition: background .15s;
+}
+.review-row:last-child { border-bottom: none; }
+.review-row:hover { background: #faf8ff; }
+.review-lesson-badge {
+  font-size: .7rem; font-weight: 700; background: #ede9fe; color: #7748FF;
+  padding: .2rem .6rem; border-radius: 7px; white-space: nowrap;
+  flex-shrink: 0; max-width: 180px; overflow: hidden; text-overflow: ellipsis;
+}
+.review-student-name {
+  flex: 1; font-size: .88rem; font-weight: 700; color: #1a1a2e;
+  display: flex; align-items: center; gap: .4rem; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.review-student-name i { color: #7748FF; font-size: .78rem; flex-shrink: 0; }
+.review-ans-count {
+  font-size: .72rem; color: #aaa; font-weight: 600; white-space: nowrap; flex-shrink: 0;
+}
+.review-arrow { color: #c4b5fd; font-size: .85rem; flex-shrink: 0; }
 
 /* ===== FOOTER ===== */
 footer { background: linear-gradient(180deg, #5a2ee0, #7748FF) !important; color: rgba(255,255,255,.75) !important; }
@@ -382,12 +432,12 @@ footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.
         <div class="ps-div"></div>
         <div class="ps">
           <i class="bi bi-people-fill ps-icon b"></i>
-          <div><div class="ps-val">{{ total_students }}</div><div class="ps-lbl">Учеников</div></div>
+          <div><div class="ps-val">{{ total_students }}</div><div class="ps-lbl">{{ total_students|pluralize_students }}</div></div>
         </div>
         <div class="ps-div"></div>
         <div class="ps">
           <i class="bi bi-camera-video-fill ps-icon c"></i>
-          <div><div class="ps-val">{{ upcoming_webinars_count }}</div><div class="ps-lbl">Вебинаров</div></div>
+          <div><div class="ps-val">{{ upcoming_webinars_count }}</div><div class="ps-lbl">{{ upcoming_webinars_count|pluralize_webinars }} на неделе</div></div>
         </div>
       </div>
     </div>
@@ -464,6 +514,8 @@ footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.
           {% for w in webinars %}
           <div class="witem"
                onclick="showWebinarDetail(this)"
+               data-id="{{ w.pk }}"
+               data-delete-url="{% url 'schedule_delete' w.pk %}"
                data-course="{{ w.course.name }}"
                data-date="{{ w.date|date:'d.m.Y' }}"
                data-date-key="{{ w.date|date:'Y-m-d' }}"
@@ -494,6 +546,28 @@ footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.
     </div>
 
   </div>
+
+  {# ===== PENDING REVIEWS ===== #}
+  {% if pending_reviews %}
+  <div class="reviews-card">
+    <div class="reviews-card-header">
+      <i class="bi bi-hourglass-split"></i>
+      <h3>Ответы ожидают проверки</h3>
+      <span class="reviews-count">{{ pending_reviews|length }} на проверке</span>
+    </div>
+    {% for review in pending_reviews %}
+    <a href="{% url 'mentor_review_submit' review.lesson.id review.student.pk %}" class="review-row">
+      <span class="review-lesson-badge">{{ review.lesson.title|truncatechars:28 }}</span>
+      <div class="review-student-name">
+        <i class="bi bi-person-fill"></i>
+        {{ review.student.user.get_full_name }}
+      </div>
+      <span class="review-ans-count">{{ review.subs|length }} отв.</span>
+      <i class="bi bi-chevron-right review-arrow"></i>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
 
 </div>
 
@@ -529,6 +603,9 @@ footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.
     <a href="#" class="wdet-join" id="wdet-join-btn" style="display:none">
       <i class="bi bi-camera-video-fill"></i> Присоединиться
     </a>
+    <button class="wdet-delete-btn" id="wdet-delete-btn">
+      <i class="bi bi-trash-fill"></i> Удалить вебинар
+    </button>
     <button class="wdet-close" onclick="closeWebinarDetail()">Закрыть</button>
   </div>
 </div>
@@ -537,8 +614,8 @@ footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.
 <div class="del-overlay" id="delOverlay" onclick="closeDeleteModal(event)">
   <div class="del-modal" onclick="event.stopPropagation()">
     <div class="del-modal-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
-    <h3>Удалить курс?</h3>
-    <p>Вы действительно хотите удалить курс <span class="del-modal-name" id="delCourseName"></span>? Это действие нельзя отменить.</p>
+    <h3 id="delTitle">Удалить?</h3>
+    <p id="delText"></p>
     <form id="delForm" method="post">
       {% csrf_token %}
       <div class="del-modal-btns">
@@ -554,8 +631,12 @@ footer h5 { color: #fff !important; } footer ul li a { color: rgba(255,255,255,.
 {% block extra_js %}
 <script>
 // Delete modal
-function openDeleteModal(name, url) {
-  document.getElementById('delCourseName').textContent = name;
+function openDeleteModal(name, url, entity) {
+  entity = entity || 'курс';
+  document.getElementById('delTitle').textContent = 'Удалить ' + entity + '?';
+  document.getElementById('delText').innerHTML =
+    'Вы действительно хотите удалить ' + entity + ' <span class="del-modal-name">' +
+    name + '</span>? Это действие нельзя отменить.';
   document.getElementById('delForm').action = url;
   document.getElementById('delOverlay').classList.add('open');
 }
@@ -572,8 +653,11 @@ document.addEventListener('keydown', function(e) {
 });
 
 // Webinar detail modal
+var _wdetDeleteUrl = '', _wdetTitle = '';
 function showWebinarDetail(el){
-  document.getElementById('wdet-title').textContent = el.dataset.format + ': ' + el.dataset.course;
+  _wdetTitle = el.dataset.format + ': ' + el.dataset.course;
+  _wdetDeleteUrl = el.dataset.deleteUrl || '';
+  document.getElementById('wdet-title').textContent = _wdetTitle;
   document.getElementById('wdet-date').textContent = el.dataset.date;
   document.getElementById('wdet-time').textContent = el.dataset.timeStart + ' — ' + el.dataset.timeEnd;
   document.getElementById('wdet-format').textContent = el.dataset.format;
@@ -591,6 +675,10 @@ function closeWebinarDetail(e){
   if(e && e.target !== document.getElementById('wdetOverlay')) return;
   document.getElementById('wdetOverlay').classList.remove('open');
 }
+document.getElementById('wdet-delete-btn').onclick = function(){
+  closeWebinarDetail();
+  openDeleteModal(_wdetTitle, _wdetDeleteUrl, 'вебинар');
+};
 
 // Day webinars popup
 function showDayWebinars(dateKey){

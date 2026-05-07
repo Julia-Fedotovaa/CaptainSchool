@@ -71,8 +71,20 @@ body { background: #7748FF; }
 .child-avatar-placeholder { font-size: 2.2rem; color: rgba(255,255,255,.45); }
 
 .child-name-block { flex: 1; min-width: 0; }
-.child-name-block h3 { font-size: 1.25rem; font-weight: 800; color: #1a1a2e; margin: 0 0 .15rem; }
-.child-sub { font-size: .8rem; color: #aaa; }
+.child-name-block h3 { font-size: 1.25rem; font-weight: 800; color: #1a1a2e; margin: 0 0 .3rem; }
+.child-tag {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: #ede9fe; color: #7748FF; border-radius: 8px;
+  padding: .22rem .65rem; font-size: .74rem; font-weight: 700;
+}
+.child-tag i { font-size: .68rem; }
+.child-no-level {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: #fffbeb; color: #b45309; border: 1.5px solid #fde68a;
+  border-radius: 8px; padding: .22rem .65rem; font-size: .74rem; font-weight: 600;
+  text-decoration: none; transition: background .15s;
+}
+.child-no-level:hover { background: #fef3c7; color: #92400e; }
 
 .child-creds-btn {
   background: none; border: 1.5px solid #ede9fe; border-radius: 8px;
@@ -87,12 +99,21 @@ body { background: #7748FF; }
 .child-pfill { height: 100%; background: linear-gradient(90deg, #7748FF, #b08aff); border-radius: 3px; }
 .child-plabel { font-size: .72rem; color: #bbb; }
 
-.child-stats { display: flex; gap: 0; margin-bottom: 1.2rem; }
-.cstat { padding: 0 1rem; }
-.cstat:first-child { padding-left: 0; }
-.cstat .v { font-size: 1.15rem; font-weight: 800; color: #1a1a2e; line-height: 1; }
-.cstat .l { font-size: .66rem; color: #bbb; font-weight: 500; margin-top: .1rem; }
-.cstat-div { width: 1px; height: 26px; background: #ede9fe; flex-shrink: 0; align-self: center; }
+.child-stats { display: flex; gap: .55rem; margin-bottom: 1.2rem; }
+.cstat-card {
+  display: flex; align-items: center; gap: .55rem;
+  background: #faf8ff; border: 1.5px solid #f0ecff;
+  border-radius: 12px; padding: .55rem .75rem; flex: 1; min-width: 0;
+}
+.cstat-icon {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: .95rem;
+}
+.cstat-icon-lessons { background: #ede9fe; color: #7748FF; }
+.cstat-icon-time    { background: #fef3c7; color: #d97706; }
+.cstat-icon-correct { background: #dcfce7; color: #16a34a; }
+.cstat-card .v { font-size: 1.1rem; font-weight: 800; color: #1a1a2e; line-height: 1; white-space: nowrap; }
+.cstat-card .l { font-size: .62rem; color: #aaa; font-weight: 600; line-height: 1.3; margin-top: .12rem; }
 
 .child-section-label {
   font-size: .7rem; font-weight: 700; color: #bbb; text-transform: uppercase;
@@ -340,7 +361,13 @@ footer ul li a { color: rgba(255,255,255,.68) !important; }
           </div>
           <div class="child-name-block">
             <h3>{{ student.user.get_full_name }}</h3>
-            <div class="child-sub">{{ student.education_level }}{% if student.study_status %} · {{ student.study_status }}{% endif %}</div>
+            {% if student.education_level != 'Не указан' %}
+              <span class="child-tag"><i class="bi bi-mortarboard-fill"></i> {{ student.education_level }}</span>
+            {% else %}
+              <a href="{% url 'parent_child_edit' student.user.pk %}" class="child-no-level">
+                <i class="bi bi-pencil-fill"></i> Укажите уровень образования
+              </a>
+            {% endif %}
           </div>
           <a href="{% url 'parent_child_edit' student.user.pk %}" class="child-edit-btn">
             <i class="bi bi-pencil"></i> Изменить
@@ -358,19 +385,26 @@ footer ul li a { color: rgba(255,255,255,.68) !important; }
         </div>
 
         <div class="child-stats">
-          <div class="cstat">
-            <div class="v">{{ stats.quizzes_passed }}</div>
-            <div class="l">Тестов</div>
+          <div class="cstat-card">
+            <div class="cstat-icon cstat-icon-lessons"><i class="bi bi-journal-check"></i></div>
+            <div>
+              <div class="v">{{ stats.quizzes_passed }}</div>
+              <div class="l">Уроков<br>завершено</div>
+            </div>
           </div>
-          <div class="cstat-div"></div>
-          <div class="cstat">
-            <div class="v">{{ stats.best_time_display }}</div>
-            <div class="l">Лучшее время</div>
+          <div class="cstat-card">
+            <div class="cstat-icon cstat-icon-time"><i class="bi bi-stopwatch-fill"></i></div>
+            <div>
+              <div class="v">{{ stats.best_time_display }}</div>
+              <div class="l">Рекорд<br>за урок</div>
+            </div>
           </div>
-          <div class="cstat-div"></div>
-          <div class="cstat">
-            <div class="v">{{ stats.correct_answers }}</div>
-            <div class="l">Правильных</div>
+          <div class="cstat-card">
+            <div class="cstat-icon cstat-icon-correct"><i class="bi bi-check2-all"></i></div>
+            <div>
+              <div class="v">{{ stats.correct_answers }}</div>
+              <div class="l">Верных<br>ответов</div>
+            </div>
           </div>
         </div>
 
